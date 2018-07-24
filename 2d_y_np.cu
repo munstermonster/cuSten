@@ -1,6 +1,6 @@
 // Andrew Gloster
-// May 2018
-// Example of x direction non periodic 2D code
+// July 2018
+// Examples - 2D y direction - non periodic
 
 //   Copyright 2018 Andrew Gloster
 
@@ -50,16 +50,16 @@ int main()
 	int deviceNum = 0;
 
 	// Declare Domain Size
-	int nx = 2048;
-	int ny = 1024;
+	int nx = 512;
+	int ny = 512;
 
-	double lx = 2 * M_PI;
+	double ly = 2 * M_PI;
 
 	// Domain spacings
-	double dx = lx / (double) (nx);
+	double dy = ly / (double) (ny);
 
 	// Set the number of tiles per device
-	int numTiles = 2;
+	int numTiles = 4;
 
 	// Initial Conditions
 	double* dataOld;
@@ -82,9 +82,9 @@ int main()
 	{
 		for (int i = 0; i < nx; i++)
 		{
-			dataOld[j * nx + i] = sin(i * dx);
+			dataOld[j * nx + i] = sin(j * dy);
 			dataNew[j * nx + i] = 0.0;
-			answer[j * nx + i] = - sin(i * dx);
+			answer[j * nx + i] =- sin(j * dy);
 		}
 	}
 
@@ -97,22 +97,21 @@ int main()
 	// -----------------------------
 
 	int numSten = 9;
-	int numStenLeft = 4;
-	int numStenRight = 4;
+	int numStenTop = 4;
+	int numStenBottom = 4;
 
 	double* weights;
 	cudaMallocManaged(&weights, numSten * sizeof(double));
 
-	weights[0] = - (1.0 / 560.0) * 1.0 / pow(dx, 2.0);
-	weights[1] = (8.0 / 315.0) * 1.0 / pow(dx, 2.0);
-	weights[2] = - (1.0 / 5.0) * 1.0 / pow(dx, 2.0);
-	weights[3] = (8.0 / 5.0) * 1.0 / pow(dx, 2.0);
-	weights[4] = - (205.0 / 72.0) * 1.0 / pow(dx, 2.0);
-	weights[5] = (8.0 / 5.0) * 1.0 / pow(dx, 2.0);
-	weights[6] = - (1.0 / 5.0) * 1.0 / pow(dx, 2.0);
-	weights[7] = (8.0 / 315.0) * 1.0 / pow(dx, 2.0);
-	weights[8] = - (1.0 / 560.0) * 1.0 / pow(dx, 2.0);
-
+	weights[0] = - (1.0 / 560.0) * 1.0 / pow(dy, 2.0);
+	weights[1] = (8.0 / 315.0) * 1.0 / pow(dy, 2.0);
+	weights[2] = - (1.0 / 5.0) * 1.0 / pow(dy, 2.0);
+	weights[3] = (8.0 / 5.0) * 1.0 / pow(dy, 2.0);
+	weights[4] = - (205.0 / 72.0) * 1.0 / pow(dy, 2.0);
+	weights[5] = (8.0 / 5.0) * 1.0 / pow(dy, 2.0);
+	weights[6] = - (1.0 / 5.0) * 1.0 / pow(dy, 2.0);
+	weights[7] = (8.0 / 315.0) * 1.0 / pow(dy, 2.0);
+	weights[8] = - (1.0 / 560.0) * 1.0 / pow(dy, 2.0);
 	// -----------------------------
 	// Set up device
 	// -----------------------------
@@ -122,10 +121,10 @@ int main()
 	int nyDevice = ny;
 
 	// Set up the compute device structs
-	cuSten_t xDirCompute;
+	cuSten_t yDirCompute;
 
 	// Initialise the instance of the stencil
-	custenCreate2DXp(&xDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenLeft, numStenRight);
+	custenCreate2DYnp(&yDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenTop, numStenBottom);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();
@@ -135,7 +134,7 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DXp(&xDirCompute, 0);
+	custenCompute2DYnp(&yDirCompute, 0);
 
 	// Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
@@ -144,7 +143,7 @@ int main()
 	{
 		for (int i = 0; i < nx; i++)
 		{
-			printf("%lf %lf %d \n", dataNew[j * nx + i], answer[j * nx + i], i);
+			printf("%lf %lf %lf %d %d \n", dataOld[j * nx + i], dataNew[j * nx + i], answer[j * nx + i], i, j);
 		}
 	}
 
@@ -153,14 +152,14 @@ int main()
 	// -----------------------------
 
 	// Destroy struct
-	custenDestroy2DXp(&xDirCompute);
+	custenDestroy2DYpFun(&yDirCompute);
 
 	// Free memory at the end
 	cudaFree(dataOld);
 	cudaFree(dataNew);
 	cudaFree(answer);
 	cudaFree(weights);
-
+	
 	// Return 0 when the program completes
 	return 0;
 }

@@ -1,7 +1,7 @@
 // Andrew Gloster
-// May 2018
+// july 2018
 // Functions to create and destroy the required struct for a 2D y direction
-// periodic calculation
+// non periodic calculation
 
 //   Copyright 2018 Andrew Gloster
 
@@ -33,29 +33,29 @@
 #include "../util/util.h"
 
 // ---------------------------------------------------------------------
-// Function to create the struct for a 2D x direction non periodic
+// Function to create the struct for a 2D y direction non periodic
 // ---------------------------------------------------------------------
 
-void custenCreate2DYp(
-	cuSten_t* pt_cuSten,
+void custenCreate2DYnp(
+	cuSten_t* pt_cuSten,		// Pointer to the compute struct type
 
-	int deviceNum,
+	int deviceNum,				// Device on which to compute this stencil
 
-	int numTiles,
+	int numTiles,				// Number of tiles to divide the data on the device into
 
-	int nxDevice,
-	int nyDevice,
+	int nxDevice,				// Number of points in x on the device
+	int nyDevice,				// Number of points in y on the device
 
-	int BLOCK_X,
-	int BLOCK_Y,
+	int BLOCK_X,				// Number of threads to use in x
+	int BLOCK_Y,				// Number of threads to use in y
 
-	double* dataNew,
-	double* dataOld,
-	double* weights,
+	double* dataNew,			// Output data
+	double* dataOld,			// Input data
+	double* weights,			// Arracy containing the weights
 
-	int numSten,
-	int numStenTop,
-	int numStenBottom
+	int numSten,				// Number of points in a stencil
+	int numStenTop,				// Number of points in the top of the stencil
+	int numStenBottom			// Number of points in the bottom of the stencil
 ) 
 {
 	// Buffer used for error checking
@@ -171,24 +171,24 @@ void custenCreate2DYp(
 	{
 		// One tile only requires single top and bottom to be set
 		case 1:
-			pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
-			pt_cuSten->boundaryBottom[0] = &dataOld[0]; 
+			pt_cuSten->boundaryTop[0] = &dataOld[0];
+			pt_cuSten->boundaryBottom[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenBottom) * pt_cuSten->nxDevice]; 
 
 			break;
 
 		// Two tiles requires a special case of only setting two tiles
 		case 2:
-			pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
+			pt_cuSten->boundaryTop[0] = &dataOld[0];
 			pt_cuSten->boundaryBottom[0] = &dataOld[pt_cuSten->nyTile * pt_cuSten->nxDevice];
 
 			pt_cuSten->boundaryTop[1] = &dataOld[(pt_cuSten->nyTile - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
-			pt_cuSten->boundaryBottom[1] = &dataOld[0];
+			pt_cuSten->boundaryBottom[1] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenBottom) * pt_cuSten->nxDevice];
 
 			break;
 
 		// Default case has interiors, so set the top tile, then loop over interior, then set the bottom tile
 		default:
-			pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
+			pt_cuSten->boundaryTop[0] = &dataOld[0];
 			pt_cuSten->boundaryBottom[0] = &dataOld[pt_cuSten->nyTile * pt_cuSten->nxDevice];
 
 			for (int tile = 1; tile < pt_cuSten->numTiles - 1; tile++)
@@ -198,7 +198,7 @@ void custenCreate2DYp(
 			}
 
 			pt_cuSten->boundaryTop[pt_cuSten->numTiles - 1] = &dataOld[(pt_cuSten->nyTile * (pt_cuSten->numTiles - 1) - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
-			pt_cuSten->boundaryBottom[pt_cuSten->numTiles - 1] = &dataOld[0];
+			pt_cuSten->boundaryBottom[pt_cuSten->numTiles - 1] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenBottom) * pt_cuSten->nxDevice];
 
 			break;
 	}
@@ -212,10 +212,10 @@ void custenCreate2DYp(
 }
 
 // ---------------------------------------------------------------------
-// Function to destroy the struct for a 2D x direction non periodic
+// Function to destroy the struct for a 2D y direction non periodic
 // ---------------------------------------------------------------------
 
-void custenDestroy2DYp(
+void custenDestroy2DYnp(
 	cuSten_t* pt_cuSten
 ) 
 {

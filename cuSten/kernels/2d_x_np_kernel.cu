@@ -44,9 +44,9 @@ __global__ void kernel2DXnp
 
 	const double* d_weights,       		// Stencil weights
 
-	const int sizeStencil,				// Stencil width
-	const int stenLeft,					// Number of points to the left
-	const int stenRight,				// Number of points to the right
+	const int numSten,				// Stencil width
+	const int numStenLeft,					// Number of points to the left
+	const int numStenRight,				// Number of points to the right
 
 	const int nxLocal,					// Number of points in shared memory in x direction
 	const int nyLocal,					// Number of points in shared memory in y direction
@@ -64,7 +64,7 @@ __global__ void kernel2DXnp
 
 	// Move the weigths into shared memory
 	#pragma unroll
-	for (int k = 0; k < sizeStencil; k++)
+	for (int k = 0; k < numSten; k++)
 	{
 		weigthsLocal[k] = d_weights[k];
 	}
@@ -74,7 +74,7 @@ __global__ void kernel2DXnp
 	int globalIdy = blockDim.y * blockIdx.y + threadIdx.y;
 
 	// Local matrix index
-	int localIdx = threadIdx.x + stenLeft;
+	int localIdx = threadIdx.x + numStenLeft;
 	int localIdy = threadIdx.y;
 
 	// Local sum variable
@@ -88,12 +88,12 @@ __global__ void kernel2DXnp
 	{
 		arrayLocal[localIdy * nxLocal + localIdx] = dataOld[globalIdy * nx + globalIdx];
 
-		if (threadIdx.x < stenLeft)
+		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataOld[globalIdy * nx + (globalIdx - stenLeft)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataOld[globalIdy * nx + (globalIdx - numStenLeft)];
 		}
 
-		if (threadIdx.x < stenRight)
+		if (threadIdx.x < numStenRight)
 		{
 			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataOld[globalIdy * nx + globalIdx + BLOCK_X];
 		}
@@ -104,7 +104,7 @@ __global__ void kernel2DXnp
 		stenSet = localIdy * nxLocal + threadIdx.x;
 
 		#pragma unroll
-		for (int k = 0; k < sizeStencil; k++)
+		for (int k = 0; k < numSten; k++)
 		{
 			sum += weigthsLocal[k] * arrayLocal[stenSet + k];
 		}
@@ -117,20 +117,20 @@ __global__ void kernel2DXnp
 	{
 		arrayLocal[localIdy * nxLocal + threadIdx.x] = dataOld[globalIdy * nx + globalIdx];
 
-		if (threadIdx.x < stenRight)
+		if (threadIdx.x < numStenRight)
 		{
 			arrayLocal[localIdy * nxLocal + threadIdx.x + BLOCK_X] = dataOld[globalIdy * nx + globalIdx + BLOCK_X];
 		}
 
 		__syncthreads();
 
-		if (threadIdx.x >= stenLeft)
+		if (threadIdx.x >= numStenLeft)
 		{
 
-			stenSet = localIdy * nxLocal + threadIdx.x - stenLeft;
+			stenSet = localIdy * nxLocal + threadIdx.x - numStenLeft;
 
 			#pragma unroll
-			for (int k = 0; k < sizeStencil; k++)
+			for (int k = 0; k < numSten; k++)
 			{
 				sum += weigthsLocal[k] * arrayLocal[stenSet + k];
 			}
@@ -142,22 +142,22 @@ __global__ void kernel2DXnp
 	// Set the right boundary blocks
 	if (blockIdx.x == nx / BLOCK_X - 1)
 	{
-		arrayLocal[localIdy * nxLocal + threadIdx.x + stenLeft] = dataOld[globalIdy * nx + globalIdx];
+		arrayLocal[localIdy * nxLocal + threadIdx.x + numStenLeft] = dataOld[globalIdy * nx + globalIdx];
 
-		if (threadIdx.x < stenLeft)
+		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataOld[globalIdy * nx + (globalIdx - stenLeft)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataOld[globalIdy * nx + (globalIdx - numStenLeft)];
 		}
 
 		__syncthreads();
 
-		if (threadIdx.x < BLOCK_X - stenRight)
+		if (threadIdx.x < BLOCK_X - numStenRight)
 		{
 
 			stenSet = localIdy * nxLocal + threadIdx.x;
 
 			#pragma unroll
-			for (int k = 0; k < sizeStencil; k++)
+			for (int k = 0; k < numSten; k++)
 			{
 				sum += weigthsLocal[k] * arrayLocal[stenSet + k];
 			}
@@ -198,8 +198,8 @@ void custenCompute2DXnp
 
 	// Preload the first block
 	cudaStreamSynchronize(pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nxTile * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nxTile * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 	cudaEventRecord(pt_cuSten->events[1], pt_cuSten->streams[1]);
 
 	// Temporary stream and event used for permuting
@@ -214,22 +214,22 @@ void custenCompute2DXnp
 		cudaEventSynchronize(pt_cuSten->events[1]);
 
 		// Preform the computation on the current tile
-		kernel2DXnp<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(pt_cuSten->dataOutput[tile], pt_cuSten->dataInput[tile], pt_cuSten->weights, pt_cuSten->numSten, pt_cuSten->numStenLeft, pt_cuSten->numStenRight, local_nx, local_ny, pt_cuSten->BLOCK_X, pt_cuSten->nxTile);
+		kernel2DXnp<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(pt_cuSten->dataOutput[tile], pt_cuSten->dataInput[tile], pt_cuSten->weights, pt_cuSten->numSten, pt_cuSten->numStenLeft, pt_cuSten->numStenRight, local_nx, local_ny, pt_cuSten->BLOCK_X, pt_cuSten->nxDevice);
 		cudaEventRecord(pt_cuSten->events[0], pt_cuSten->streams[0]);
 
 		// Offload should the user want to
 		if (offload == 1)
 		{
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile], pt_cuSten->nxTile * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
-	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile], pt_cuSten->nxTile * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
+	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
 		}
 
 		// Load the next tile
     	if (tile < pt_cuSten->numTiles - 1)
     	{
     		cudaStreamSynchronize(pt_cuSten->streams[1]);
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nxTile * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nxTile * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 			cudaEventRecord(pt_cuSten->events[1], pt_cuSten->streams[1]);
     	}
 

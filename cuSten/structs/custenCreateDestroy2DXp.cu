@@ -41,8 +41,6 @@ void custenCreate2DXp(
 
 	int deviceNum,
 
-	int numStreams,
-
 	int numTiles,
 
 	int nxDevice,
@@ -67,7 +65,7 @@ void custenCreate2DXp(
   	pt_cuSten->deviceNum = deviceNum;
 
   	// Set the number of streams
-  	pt_cuSten->numStreams = numStreams;
+  	pt_cuSten->numStreams = 3;
 
   	// Set the number of tiles
   	pt_cuSten->numTiles = numTiles;
@@ -90,7 +88,7 @@ void custenCreate2DXp(
 	checkError(msgStringBuffer);	
 
 	// Create memeory for the streams
-	pt_cuSten->streams = (cudaStream_t*)malloc(numStreams * sizeof(cudaStream_t*));
+	pt_cuSten->streams = (cudaStream_t*)malloc(pt_cuSten->numStreams * sizeof(cudaStream_t*));
 
 	// Create the streams
 	for (int st = 0; st < pt_cuSten->numStreams; st++)
@@ -124,13 +122,13 @@ void custenCreate2DXp(
 	pt_cuSten->mem_shared = (pt_cuSten->BLOCK_Y * pt_cuSten->BLOCK_X + pt_cuSten->BLOCK_Y * (pt_cuSten->numStenLeft + pt_cuSten->numStenRight)) * sizeof(double) + pt_cuSten->numSten * sizeof(double);
 
 	// Find number of points per tile
-	pt_cuSten->nxTile = pt_cuSten->nxDevice;
+	pt_cuSten->nxDevice = pt_cuSten->nxDevice;
 
 	// Find number of points per tile
 	pt_cuSten->nyTile = pt_cuSten->nyDevice / pt_cuSten->numTiles;	
 
 	// Set the grid up
-    pt_cuSten->xGrid = (pt_cuSten->nxTile % pt_cuSten->BLOCK_X == 0) ? (pt_cuSten->nxTile / pt_cuSten->BLOCK_X) : (pt_cuSten->nxTile / pt_cuSten->BLOCK_X + 1);
+    pt_cuSten->xGrid = (pt_cuSten->nxDevice % pt_cuSten->BLOCK_X == 0) ? (pt_cuSten->nxDevice / pt_cuSten->BLOCK_X) : (pt_cuSten->nxDevice / pt_cuSten->BLOCK_X + 1);
     pt_cuSten->yGrid = (pt_cuSten->nyTile % pt_cuSten->BLOCK_Y == 0) ? (pt_cuSten->nyTile / pt_cuSten->BLOCK_Y) : (pt_cuSten->nyTile / pt_cuSten->BLOCK_Y + 1);
 
 	// Set the device weights pointer
@@ -143,7 +141,7 @@ void custenCreate2DXp(
 	pt_cuSten->dataOutput = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
 
 	// // Tile offset index
-	int offset = pt_cuSten->nxTile * pt_cuSten->nyTile;
+	int offset = pt_cuSten->nxDevice * pt_cuSten->nyTile;
 
 	// // Match the pointers to the data
 	for (int tile = 0; tile < pt_cuSten->numTiles; tile++)

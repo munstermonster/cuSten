@@ -41,8 +41,6 @@ void custenCreate2DYpFun(
 
 	int deviceNum,
 
-	int numStreams,
-
 	int numTiles,
 
 	int nxDevice,
@@ -71,7 +69,7 @@ void custenCreate2DYpFun(
   	pt_cuSten->deviceNum = deviceNum;
 
   	// Set the number of streams
-  	pt_cuSten->numStreams = numStreams;
+  	pt_cuSten->numStreams = 3;
 
   	// Set the number of tiles
   	pt_cuSten->numTiles = numTiles;
@@ -94,7 +92,7 @@ void custenCreate2DYpFun(
 	checkError(msgStringBuffer);	
 
 	// Create memeory for the streams
-	pt_cuSten->streams = (cudaStream_t*)malloc(numStreams * sizeof(cudaStream_t*));
+	pt_cuSten->streams = (cudaStream_t*)malloc(pt_cuSten->numStreams * sizeof(cudaStream_t*));
 
 	// Create the streams
 	for (int st = 0; st < pt_cuSten->numStreams; st++)
@@ -137,13 +135,10 @@ void custenCreate2DYpFun(
 	pt_cuSten->mem_shared = (pt_cuSten->nxLocal * pt_cuSten->nyLocal) * sizeof(double) + pt_cuSten->numCoe * sizeof(double);
 
 	// Find number of points per tile
-	pt_cuSten->nxTile = pt_cuSten->nxDevice;
-
-	// Find number of points per tile
 	pt_cuSten->nyTile = pt_cuSten->nyDevice / pt_cuSten->numTiles;	
 
 	// Set the grid up
-    pt_cuSten->xGrid = (pt_cuSten->nxTile % pt_cuSten->BLOCK_X == 0) ? (pt_cuSten->nxTile / pt_cuSten->BLOCK_X) : (pt_cuSten->nxTile / pt_cuSten->BLOCK_X + 1);
+    pt_cuSten->xGrid = (pt_cuSten->nxDevice % pt_cuSten->BLOCK_X == 0) ? (pt_cuSten->nxDevice / pt_cuSten->BLOCK_X) : (pt_cuSten->nxDevice / pt_cuSten->BLOCK_X + 1);
     pt_cuSten->yGrid = (pt_cuSten->nyTile % pt_cuSten->BLOCK_Y == 0) ? (pt_cuSten->nyTile / pt_cuSten->BLOCK_Y) : (pt_cuSten->nyTile / pt_cuSten->BLOCK_Y + 1);
 
 	// Set the device weights pointer
@@ -156,7 +151,7 @@ void custenCreate2DYpFun(
 	pt_cuSten->dataOutput = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
 
 	// // Tile offset index
-	int offset = pt_cuSten->nxTile * pt_cuSten->nyTile;
+	int offset = pt_cuSten->nxDevice * pt_cuSten->nyTile;
 
 	// // Match the pointers to the data
 	for (int tile = 0; tile < pt_cuSten->numTiles; tile++)
@@ -183,43 +178,43 @@ void custenCreate2DYpFun(
 	{
 		// One tile only requires single top and bottom to be set
 		case 1:
-			pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
+			pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
 			pt_cuSten->boundaryBottom[0] = &dataOld[0]; 
 
 			break;
 
 		// Two tiles requires a special case of only setting two tiles
 		case 2:
-			pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
-			pt_cuSten->boundaryBottom[0] = &dataOld[pt_cuSten->nyTile * pt_cuSten->nxTile];
+			pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
+			pt_cuSten->boundaryBottom[0] = &dataOld[pt_cuSten->nyTile * pt_cuSten->nxDevice];
 
-			pt_cuSten->boundaryTop[1] = &dataOld[(pt_cuSten->nyTile - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
+			pt_cuSten->boundaryTop[1] = &dataOld[(pt_cuSten->nyTile - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
 			pt_cuSten->boundaryBottom[1] = &dataOld[0];
 
 			break;
 
 		// Default case has interiors, so set the top tile, then loop over interior, then set the bottom tile
 		default:
-			pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
-			pt_cuSten->boundaryBottom[0] = &dataOld[pt_cuSten->nyTile * pt_cuSten->nxTile];
+			pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
+			pt_cuSten->boundaryBottom[0] = &dataOld[pt_cuSten->nyTile * pt_cuSten->nxDevice];
 
 			for (int tile = 1; tile < pt_cuSten->numTiles - 1; tile++)
 			{
-				pt_cuSten->boundaryTop[tile] = &dataOld[(pt_cuSten->nyTile * tile - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
-				pt_cuSten->boundaryBottom[tile] = &dataOld[(pt_cuSten->nyTile * (tile + 1)) * pt_cuSten->nxTile];
+				pt_cuSten->boundaryTop[tile] = &dataOld[(pt_cuSten->nyTile * tile - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
+				pt_cuSten->boundaryBottom[tile] = &dataOld[(pt_cuSten->nyTile * (tile + 1)) * pt_cuSten->nxDevice];
 			}
 
-			pt_cuSten->boundaryTop[pt_cuSten->numTiles - 1] = &dataOld[(pt_cuSten->nyTile * (pt_cuSten->numTiles - 1) - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
+			pt_cuSten->boundaryTop[pt_cuSten->numTiles - 1] = &dataOld[(pt_cuSten->nyTile * (pt_cuSten->numTiles - 1) - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
 			pt_cuSten->boundaryBottom[pt_cuSten->numTiles - 1] = &dataOld[0];
 
 			break;
 	}
 
 	// Number of points in top boundary data
-	pt_cuSten->numBoundaryTop = pt_cuSten->numStenTop * pt_cuSten->nxTile;
+	pt_cuSten->numBoundaryTop = pt_cuSten->numStenTop * pt_cuSten->nxDevice;
 
 	// Number of points in bottom boundary data
-	pt_cuSten->numBoundaryBottom = pt_cuSten->numStenBottom * pt_cuSten->nxTile;
+	pt_cuSten->numBoundaryBottom = pt_cuSten->numStenBottom * pt_cuSten->nxDevice;
 
 	// Set the function
 	pt_cuSten->devFunc = func;
@@ -245,33 +240,33 @@ void custenSwap2DYpFun(
 		{
 			// One tile only requires single top and bottom to be set
 			case 1:
-				pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
+				pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
 				pt_cuSten->boundaryBottom[0] = &dataOld[0]; 
 
 				break;
 
 			// Two tiles requires a special case of only setting two tiles
 			case 2:
-				pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
-				pt_cuSten->boundaryBottom[0] = &dataOld[pt_cuSten->nyTile * pt_cuSten->nxTile];
+				pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
+				pt_cuSten->boundaryBottom[0] = &dataOld[pt_cuSten->nyTile * pt_cuSten->nxDevice];
 
-				pt_cuSten->boundaryTop[1] = &dataOld[(pt_cuSten->nyTile - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
+				pt_cuSten->boundaryTop[1] = &dataOld[(pt_cuSten->nyTile - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
 				pt_cuSten->boundaryBottom[1] = &dataOld[0];
 
 				break;
 
 			// Default case has interiors, so set the top tile, then loop over interior, then set the bottom tile
 			default:
-				pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
-				pt_cuSten->boundaryBottom[0] = &dataOld[pt_cuSten->nyTile * pt_cuSten->nxTile];
+				pt_cuSten->boundaryTop[0] = &dataOld[(pt_cuSten->nyDevice - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
+				pt_cuSten->boundaryBottom[0] = &dataOld[pt_cuSten->nyTile * pt_cuSten->nxDevice];
 
 				for (int tile = 1; tile < pt_cuSten->numTiles - 1; tile++)
 				{
-					pt_cuSten->boundaryTop[tile] = &dataOld[(pt_cuSten->nyTile * tile - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
-					pt_cuSten->boundaryBottom[tile] = &dataOld[(pt_cuSten->nyTile * (tile + 1)) * pt_cuSten->nxTile];
+					pt_cuSten->boundaryTop[tile] = &dataOld[(pt_cuSten->nyTile * tile - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
+					pt_cuSten->boundaryBottom[tile] = &dataOld[(pt_cuSten->nyTile * (tile + 1)) * pt_cuSten->nxDevice];
 				}
 
-				pt_cuSten->boundaryTop[pt_cuSten->numTiles - 1] = &dataOld[(pt_cuSten->nyTile * (pt_cuSten->numTiles - 1) - pt_cuSten->numStenTop) * pt_cuSten->nxTile];
+				pt_cuSten->boundaryTop[pt_cuSten->numTiles - 1] = &dataOld[(pt_cuSten->nyTile * (pt_cuSten->numTiles - 1) - pt_cuSten->numStenTop) * pt_cuSten->nxDevice];
 				pt_cuSten->boundaryBottom[pt_cuSten->numTiles - 1] = &dataOld[0];
 
 				break;

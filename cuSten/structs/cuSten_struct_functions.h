@@ -50,8 +50,6 @@ void custenCreate2DXnp(
 
 	int deviceNum,				// GPU device number (important with multi gpu systems)
 
-	int numStreams,				// Number of streams to create
-
 	int numTiles,				// Number of tiles to use
 
 	int nxDevice,				// Total number of points in x that will be computed on GPU
@@ -84,8 +82,6 @@ void custenCreate2DXp(
 
 	int deviceNum,				// GPU device number (important with multi gpu systems)
 
-	int numStreams,				// Number of streams to create
-
 	int numTiles,				// Number of tiles to use
 
 	int nxDevice,				// Total number of points in x that will be computed on GPU
@@ -114,11 +110,9 @@ void custenDestroy2DXp(
 
 // Create the struct for a 2D x direction non periodic stencil
 void custenCreate2DXnpFun(
-	cuSten_t* pt_cuSten,
+	cuSten_t* pt_cuSten,		
 
 	int deviceNum,
-
-	int numStreams,
 
 	int numTiles,
 
@@ -156,8 +150,6 @@ void custenCreate2DXpFun(
 
 	int deviceNum,
 
-	int numStreams,
-
 	int numTiles,
 
 	int nxDevice,
@@ -194,8 +186,6 @@ void custenCreate2DYp(
 
 	int deviceNum,				// GPU device number (important with multi gpu systems)
 
-	int numStreams,				// Number of streams to create
-
 	int numTiles,				// Number of tiles to use
 
 	int nxDevice,				// Total number of points in x that will be computed on GPU
@@ -222,13 +212,11 @@ void custenDestroy2DYp(
 // 2D y direction with periodic user function
 // ----------------------------------------
 
-// Create the struct for a 2D x direction non periodic stencil
+// Create the struct for a 2D y direction periodic with user function
 void custenCreate2DYpFun(
 	cuSten_t* pt_cuSten,
 
 	int deviceNum,
-
-	int numStreams,
 
 	int numTiles,
 
@@ -251,16 +239,48 @@ void custenCreate2DYpFun(
 	double* func	
 );
 
-// Swap pointers when timestepping
+// Swap pointers
 void custenSwap2DYpFun(
 	cuSten_t* pt_cuSten,
 
 	double* dataOld
 );
 
-// Destroy the struct for a 2D x direction non periodic stencil with user function
+// Destroy the struct for a 2D y direction periodic stencil with user function
 void custenDestroy2DYpFun(
 	cuSten_t* pt_cuSten
+);
+
+// ----------------------------------------
+// 2D y direction with non periodic
+// ----------------------------------------
+
+// Function to create the struct for a 2D y direction non periodic
+void custenCreate2DYnp(
+	cuSten_t* pt_cuSten,		// Pointer to the compute struct type
+
+	int deviceNum,				// Device on which to compute this stencil
+
+	int numTiles,				// Number of tiles to divide the data on the device into
+
+	int nxDevice,				// Number of points in x on the device
+	int nyDevice,				// Number of points in y on the device
+
+	int BLOCK_X,				// Number of threads to use in x
+	int BLOCK_Y,				// Number of threads to use in y
+
+	double* dataNew,			// Output data
+	double* dataOld,			// Input data
+	double* weights,			// Arracy containing the weights
+
+	int numSten,				// Number of points in a stencil
+	int numStenTop,				// Number of points in the top of the stencil
+	int numStenBottom			// Number of points in the bottom of the stencil
+);
+
+// Function to destroy the struct for a 2D y direction non periodic
+void custenDestroy2DYnp(
+	cuSten_t* pt_cuSten			// Pointer to the compute struct type
 );
 
 // ---------------------------------------------------------------------

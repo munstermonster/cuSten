@@ -107,6 +107,18 @@ void custenCompute2DYpFun
 	bool offload
 );
 
+// ----------------------------------------
+// 2D y direction non periodic
+// ----------------------------------------
+
+
+void custenCompute2DYnp
+(
+	cuSten_t* pt_cuSten,
+
+	bool offload
+);
+
 // ---------------------------------------------------------------------
 // End of header file functions
 // ---------------------------------------------------------------------

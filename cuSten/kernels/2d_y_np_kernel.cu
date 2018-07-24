@@ -1,6 +1,6 @@
 // Andrew Gloster
-// May 2018
-// Kernel to apply a y direction stencil on a 2D grid - periodic
+// July 2018
+// Kernel to apply a y direction stencil on a 2D grid - non periodic
 
 //   Copyright 2018 Andrew Gloster
 
@@ -30,15 +30,13 @@
 
 #include "../util/util.h"
 #include "../structs/cuSten_struct_type.h"
-#include "../DeviceFunctions.h"
 
 // ---------------------------------------------------------------------
 //  Kernel Definition
 // ---------------------------------------------------------------------
 
-__global__ void kernel2DYpFun
+__global__ void kernel2DYnp
 (
-
 	double* dataNew,  					// Answer data
 
 	double* dataOld,					// Input data
@@ -46,11 +44,9 @@ __global__ void kernel2DYpFun
 	double* boundaryTop, 				// Data for the top boundary
 	double* boundaryBottom,				// Data for the bottom boundary
 
-	double* func,
+	const double* weights,       		// Stencil weights
 
-	const double* coe,       			// Stencil weights
-
-	const int numCoe,					// Stencil width
+	const int numSten,					// Stencil width
 	const int numStenTop,				// Number of points on top of stencil
 	const int numStenBottom,			// Number of points on bottom of stencil
 
@@ -59,21 +55,24 @@ __global__ void kernel2DYpFun
 
 	const int BLOCK_Y,					// Number of threads in block in y
 
-	const int nxDevice,					// Total number of points in x on the tile being computed
-	const int nyTile
+	const int nxDevice,					// Total number of points in y on the tile being computed
+	const int nyTile,					// Number of points per tile in y
+
+	const int tileTop,					// Check if the tile is the true top
+	const int tileBottom				// Check if the tile is the ture bottom
 )
 {	
 	// Allocate the shared memory
 	extern __shared__ int memory[];
 
 	double* arrayLocal = (double*)&memory;
-	double* coeLocal = (double*)&arrayLocal[nxLocal * nyLocal];
+	double* weigthsLocal = (double*)&arrayLocal[nxLocal * nyLocal];
 
 	// Move the weigths into shared memory
 	#pragma unroll
-	for (int k = 0; k < numCoe; k++)
+	for (int k = 0; k < numSten; k++)
 	{
-		coeLocal[k] = coe[k];
+		weigthsLocal[k] = weights[k];
 	}
 
 	// True matrix index
@@ -108,70 +107,134 @@ __global__ void kernel2DYpFun
 		__syncthreads();
 
 
-		stenSet = localIdy * nxLocal + localIdx;
+		stenSet = threadIdx.y * nxLocal + threadIdx.x;
 
-		sum = ((devArg1Y)func)(arrayLocal, coeLocal, stenSet, nxLocal);
+		#pragma unroll
+		for (int k = 0; k < numSten; k++)
+		{
+			sum += weigthsLocal[k] * arrayLocal[stenSet + k * nxLocal];
+		}
 
 		__syncthreads();
 
 		dataNew[globalIdy * nxDevice + globalIdx] = sum;
 	}
 
-	// // Set all top boundary blocks
+	// Set all top boundary blocks
 	if (blockIdx.y == 0)
 	{
-		arrayLocal[localIdy * nxLocal + localIdx] = dataOld[globalIdy * nxDevice + globalIdx];
-
-		if (threadIdx.y < numStenTop)
+		if (tileTop != 1)
 		{
-			arrayLocal[threadIdx.y * nxLocal + localIdx] = boundaryTop[threadIdx.y * nxDevice + globalIdx];
-		}
+			arrayLocal[localIdy * nxLocal + localIdx] = dataOld[globalIdy * nxDevice + globalIdx];
 
-		if (threadIdx.y < numStenBottom)
+			if (threadIdx.y < numStenTop)
+			{
+				arrayLocal[threadIdx.y * nxLocal + localIdx] = boundaryTop[threadIdx.y * nxDevice + globalIdx];
+			}
+
+			if (threadIdx.y < numStenBottom)
+			{
+				arrayLocal[(localIdy + BLOCK_Y) * nxLocal + localIdx] = dataOld[(globalIdy + BLOCK_Y) * nxDevice + globalIdx];
+			}
+
+			__syncthreads();
+
+			stenSet = threadIdx.y * nxLocal + threadIdx.x;
+
+			#pragma unroll
+			for (int k = 0; k < numSten; k++)
+			{
+				sum += weigthsLocal[k] * arrayLocal[stenSet + k * nxLocal];
+			}
+
+			__syncthreads();
+
+			dataNew[globalIdy * nxDevice + globalIdx] = sum;
+		}
+		else
 		{
-			arrayLocal[(localIdy + BLOCK_Y) * nxLocal + localIdx] = dataOld[(globalIdy + BLOCK_Y) * nxDevice + globalIdx];
+			arrayLocal[threadIdx.y * nxLocal + localIdx] = dataOld[globalIdy * nxDevice + globalIdx];
+
+			if (threadIdx.y < numStenBottom)
+			{
+				arrayLocal[(threadIdx.y + BLOCK_Y) * nxLocal + localIdx] = dataOld[(globalIdy + BLOCK_Y) * nxDevice + globalIdx];
+			}
+
+			__syncthreads();
+
+			stenSet = threadIdx.y * nxLocal + threadIdx.x;
+
+			#pragma unroll
+			for (int k = 0; k < numSten; k++)
+			{
+				sum += weigthsLocal[k] * arrayLocal[stenSet + k * nxLocal];
+			}
+
+			__syncthreads();
+
+			if (threadIdx.y < BLOCK_Y - numStenTop)
+			{
+				dataNew[(globalIdy + numStenTop) * nxDevice + globalIdx] = sum;
+			}
 		}
-
-		__syncthreads();
-
-		stenSet = localIdy * nxLocal + localIdx;
-
-		sum = ((devArg1Y)func)(arrayLocal, coeLocal, stenSet, nxLocal);
-		
-		__syncthreads();
-
-		dataNew[globalIdy * nxDevice + globalIdx] = sum;
 	}
+
 
 	// Set the bottom boundary blocks
 	if (blockIdx.y == nyTile / BLOCK_Y - 1)
 	{
-		arrayLocal[localIdy * nxLocal + localIdx] = dataOld[globalIdy * nxDevice + globalIdx];
-
-		if (threadIdx.y < numStenTop)
+		if (tileBottom != 1)
 		{
-			arrayLocal[threadIdx.y * nxLocal + localIdx] = dataOld[(globalIdy - numStenTop) * nxDevice + globalIdx];
-		}
+			arrayLocal[localIdy * nxLocal + localIdx] = dataOld[globalIdy * nxDevice + globalIdx];
 
-		if (threadIdx.y < numStenBottom)
+			if (threadIdx.y < numStenTop)
+			{
+				arrayLocal[threadIdx.y * nxLocal + localIdx] = dataOld[(globalIdy - numStenTop) * nxDevice + globalIdx];
+			}
+
+			if (threadIdx.y < numStenBottom)
+			{
+				arrayLocal[(localIdy + BLOCK_Y) * nxLocal + localIdx] = boundaryBottom[threadIdx.y * nxDevice + globalIdx];
+			}
+
+			__syncthreads();
+
+			stenSet = threadIdx.y * nxLocal + threadIdx.x;
+
+			#pragma unroll
+			for (int k = 0; k < numSten; k++)
+			{
+				sum += weigthsLocal[k] * arrayLocal[stenSet + k * nxLocal];
+			}
+			
+			__syncthreads();
+
+			dataNew[globalIdy * nxDevice + globalIdx] = sum;
+		}
+		else
 		{
-			arrayLocal[(localIdy + BLOCK_Y) * nxLocal + localIdx] = boundaryBottom[threadIdx.y * nxDevice + globalIdx];
+			arrayLocal[localIdy * nxLocal + localIdx] = dataOld[globalIdy * nxDevice + globalIdx];
+
+			if (threadIdx.y < numStenTop)
+			{
+				arrayLocal[threadIdx.y * nxLocal + localIdx] = dataOld[(globalIdy - numStenTop) * nxDevice + globalIdx];
+			}
+
+			stenSet = threadIdx.y * nxLocal + threadIdx.x;
+
+			#pragma unroll
+			for (int k = 0; k < numSten; k++)
+			{
+				sum += weigthsLocal[k] * arrayLocal[stenSet + k * nxLocal];
+			}
+			
+			__syncthreads();
+
+			if (threadIdx.y < BLOCK_Y - numStenBottom)
+			{
+				dataNew[globalIdy * nxDevice + globalIdx] = sum;
+			}
 		}
-
-		__syncthreads();
-
-		stenSet = localIdy * nxLocal + localIdx;
-
-		sum = ((devArg1Y)func)(arrayLocal, coeLocal, stenSet, nxLocal);
-
-		// if(globalIdy == 63)
-		// {
-		// 	printf("%lf %lf %lf \n", arrayLocal[stenSet - nxLocal], arrayLocal[stenSet], arrayLocal[stenSet + nxLocal]);
-		// }
-
-		__syncthreads();
-
-		dataNew[globalIdy * nxDevice + globalIdx] = sum;
 	}
 }
 
@@ -179,7 +242,7 @@ __global__ void kernel2DYpFun
 // Function to compute kernel
 // ---------------------------------------------------------------------
 
-void custenCompute2DYpFun
+void custenCompute2DYnp
 (
 	cuSten_t* pt_cuSten,
 
@@ -198,7 +261,7 @@ void custenCompute2DYpFun
 	dim3 gridDim(pt_cuSten->xGrid, pt_cuSten->yGrid);
 
 	// Load the weights
-	cudaMemPrefetchAsync(pt_cuSten->coe, pt_cuSten->numCoe * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->weights, pt_cuSten->numSten * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 	// Ensure the current stream is free
 	cudaStreamSynchronize(pt_cuSten->streams[1]);
@@ -218,15 +281,44 @@ void custenCompute2DYpFun
 	cudaStream_t ts;
 	cudaEvent_t te;
 
+	// Tile positions
+	int tileTop;
+	int tileBottom;
+
 	// Loop over the tiles
 	for (int tile = 0; tile < pt_cuSten->numTiles; tile++)
 	{
+		// Set the variables that describe the current tile position
+		if (pt_cuSten->numTiles == 0)
+		{
+			tileTop = 1;
+			tileBottom = 1;
+		}
+		else
+		{
+			if (tile == 0)
+			{
+				tileTop = 1;
+				tileBottom = 0;
+			}
+			else if (tile == pt_cuSten->numTiles - 1)
+			{
+				tileTop = 0;
+				tileBottom = 1;
+			}
+			else
+			{
+				tileTop = 0;
+				tileBottom = 0;
+			}
+		}
+
 		// Synchronise the events to ensure computation overlaps
 		cudaEventSynchronize(pt_cuSten->events[0]);
 		cudaEventSynchronize(pt_cuSten->events[1]);
 
 		// Preform the computation on the current tile
-		kernel2DYpFun<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(pt_cuSten->dataOutput[tile], pt_cuSten->dataInput[tile], pt_cuSten->boundaryTop[tile], pt_cuSten->boundaryBottom[tile], pt_cuSten->devFunc, pt_cuSten->coe, pt_cuSten->numCoe, pt_cuSten->numStenTop, pt_cuSten->numStenBottom, pt_cuSten->nxLocal, pt_cuSten->nyLocal, pt_cuSten->BLOCK_Y, pt_cuSten->nxDevice, pt_cuSten->nyTile);
+		kernel2DYnp<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(pt_cuSten->dataOutput[tile], pt_cuSten->dataInput[tile], pt_cuSten->boundaryTop[tile], pt_cuSten->boundaryBottom[tile], pt_cuSten->weights, pt_cuSten->numSten, pt_cuSten->numStenTop, pt_cuSten->numStenBottom,  pt_cuSten->nxLocal, pt_cuSten->nyLocal, pt_cuSten->BLOCK_Y, pt_cuSten->nxDevice, pt_cuSten->nyTile, tileTop, tileBottom);
 		sprintf(msgStringBuffer, "Error computing tile %d on GPU %d", tile, pt_cuSten->deviceNum);
 		checkError(msgStringBuffer);	
 

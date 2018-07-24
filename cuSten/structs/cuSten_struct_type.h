@@ -36,8 +36,6 @@
 // Define Struct
 // ---------------------------------------------------------------------
 
-
-
 typedef struct
 {
     // Device number 
@@ -55,9 +53,6 @@ typedef struct
 	// Number of y points on the device
  	int nyDevice;
 
-	// Number of x points on a tile
-	int nxTile;
-	
 	// Number of y points on a tile
  	int nyTile;
 

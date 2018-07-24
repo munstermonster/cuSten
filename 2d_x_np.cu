@@ -61,9 +61,6 @@ int main()
 	// Set the number of tiles per device
 	int numTiles = 1;
 
-	// Set the number of streams per device
-	int numStreams = 3;
-
 	// Initial Conditions
 	double* dataOld;
 	double* dataNew;
@@ -128,7 +125,7 @@ int main()
 	cuSten_t xDirCompute;
 
 	// Initialise the instance of the stencil
-	custenCreate2DXnp(&xDirCompute, deviceNum, numStreams, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenLeft, numStenRight);
+	custenCreate2DXnp(&xDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenLeft, numStenRight);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();
