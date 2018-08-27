@@ -164,11 +164,6 @@ __global__ void kernel2DYpFun
 
 		sum = ((devArg1Y)func)(arrayLocal, coeLocal, stenSet, nxLocal);
 
-		// if(globalIdy == 63)
-		// {
-		// 	printf("%lf %lf %lf \n", arrayLocal[stenSet - nxLocal], arrayLocal[stenSet], arrayLocal[stenSet + nxLocal]);
-		// }
-
 		__syncthreads();
 
 		dataNew[globalIdy * nxDevice + globalIdx] = sum;

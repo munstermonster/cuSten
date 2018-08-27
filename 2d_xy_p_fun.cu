@@ -1,6 +1,6 @@
 // Andrew Gloster
 // May 2018
-// Example of y direction periodic 2D code with user function
+// Example of xy direction periodic 2D code with user function
 
 //   Copyright 2018 Andrew Gloster
 
@@ -25,7 +25,6 @@
 #include <iostream>
 #include <cstdio>
 #include "cuda.h"
-#include "omp.h"
 
 // ---------------------------------------------------------------------
 // Custom libraries and headers
@@ -37,27 +36,36 @@
 // MACROS
 // ---------------------------------------------------------------------
 
-#define BLOCK_X 4
-#define BLOCK_Y 4
+#define BLOCK_X 16
+#define BLOCK_Y 32
 
 // ---------------------------------------------------------------------
 // Function Declaration
 // ---------------------------------------------------------------------
 
-__inline__ __device__ double centralDiff(double* data, double* coe, int loc, int jump)
+__inline__ __device__ double centralDiff(double* data, double* coe, int loc, int jump, int nx, int ny)
 {	
 	double result = 0.0;
+	int temp;
+	int count = 0;
 
 	#pragma unroll
-	for (int i = 0; i < 9; i++)
+	for (int j = 0; j < ny; j++)
 	{
-		result += coe[i] * data[(loc - 4 * jump) + i * jump];
+		temp = loc + j * jump;
+
+		for (int i = 0; i < nx; i++)
+		{
+			result += coe[count] * data[temp + i];
+
+			count ++;
+		}
 	}
 
 	return result;
 }
 
-__device__ devArg1Y devFunc = centralDiff;
+__device__ devArg1XY devFunc = centralDiff;
 
 // ---------------------------------------------------------------------
 // Main Program
@@ -69,87 +77,129 @@ int main()
 	int deviceNum = 0;
 
 	// Declare Domain Size
-	int nx = 64;
-	int ny = 64;
+	int nx = 8192;
+	int ny = 8192;
 
+	double lx = 2 * M_PI;
 	double ly = 2 * M_PI;
 
 	// Domain spacings
+	double dx = lx / (double) (nx);
 	double dy = ly / (double) (ny);
 
 	// Set the number of tiles per device
-	int numTiles = 4;
+	int numTiles = 1;
 
 	// Initial Conditions
-	double* dataOld;
-	double* dataNew;
+	double* dataInput;
+	double* dataOutput;
 	double* answer;
 
 	// -----------------------------
 	// Allocate the memory 
 	// -----------------------------
 
-	cudaMallocManaged(&dataOld, nx * ny * sizeof(double));
-	cudaMallocManaged(&dataNew, nx * ny * sizeof(double));
+	cudaMallocManaged(&dataInput, nx * ny * sizeof(double));
+	cudaMallocManaged(&dataOutput, nx * ny * sizeof(double));
 	cudaMallocManaged(&answer, nx * ny * sizeof(double));
 
 	// -----------------------------
 	// Set the initial conditions
 	// -----------------------------
 
+	// Loop indexes
+	int temp;
+	int index;
+
 	for (int j = 0; j < ny; j++)
 	{
+		temp = j * nx;
 		for (int i = 0; i < nx; i++)
 		{
-			dataOld[j * nx + i] = sin(j * dy);
-			dataNew[j * nx + i] = 0.0;
-			answer[j * nx + i] = - sin(j * dy);
+			index = temp + i;
+
+			dataInput[index] = sin(i * dx) * cos(j * dy);
+			dataOutput[index] = 0.0;
+			answer[index] = - cos(i * dx) * sin(j * dy);
 		}
 	}
 
-
-	// // Ensure all the above is completed
+	// Ensure all the above is completed
 	cudaDeviceSynchronize();
 
 	// -----------------------------
 	// Set the stencil to compute
 	// -----------------------------
 
-	int numSten = 9;
-	int numStenTop = 4;
-	int numStenBottom = 4;
+	int numStenHoriz = 3;
+	int numStenLeft = 1;
+	int numStenRight = 1;
 
-	int numCoe = 9;
+	int numStenVert = 3;
+	int numStenTop = 1;
+	int numStenBottom = 1;
 
 	double* coe;
-	cudaMallocManaged(&coe, numCoe * sizeof(double));
+	cudaMallocManaged(&coe, numStenHoriz * numStenVert * sizeof(double));
 
-	coe[0] = - (1.0 / 560.0) * 1.0 / pow(dy, 2.0);
-	coe[1] = (8.0 / 315.0) * 1.0 / pow(dy, 2.0);
-	coe[2] = - (1.0 / 5.0) * 1.0 / pow(dy, 2.0);
-	coe[3] = (8.0 / 5.0) * 1.0 / pow(dy, 2.0);
-	coe[4] = - (205.0 / 72.0) * 1.0 / pow(dy, 2.0);
-	coe[5] = (8.0 / 5.0) * 1.0 / pow(dy, 2.0);
-	coe[6] = - (1.0 / 5.0) * 1.0 / pow(dy, 2.0);
-	coe[7] = (8.0 / 315.0) * 1.0 / pow(dy, 2.0);
-	coe[8] = - (1.0 / 560.0) * 1.0 / pow(dy, 2.0);
+	double sigma = 1.0 / (4.0 * dx * dy);
+
+	coe[0] = 1.0 * sigma;
+	coe[1] = 0.0 * sigma;
+	coe[2] = - 1.0 * sigma;
+	coe[3] = 0.0 * sigma;
+	coe[4] = 0.0 * sigma;
+	coe[5] = 0.0 * sigma;
+	coe[6] = - 1.0 * sigma;
+	coe[7] = 0.0 * sigma;
+	coe[8] = 1.0 * sigma;
 
 	// -----------------------------
 	// Set up device
 	// -----------------------------
 
-	// Number of points per device, subdividing in y
+	// Number of points per device
 	int nxDevice = nx;
 	int nyDevice = ny;
 
 	// Set up the compute device structs
-	cuSten_t yDirCompute;
+	cuSten_t xyDirCompute;
 
+	// Copy the function to device memory
 	double* func;
-	cudaMemcpyFromSymbol(&func, devFunc, sizeof(devArg1Y));
+	cudaMemcpyFromSymbol(&func, devFunc, sizeof(devArg1XY));
+
+	// Synchronise to ensure everything initialised
+	cudaDeviceSynchronize();
 
 	// Initialise the instance of the stencil
-	custenCreate2DYpFun(&yDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, coe, numSten, numStenTop, numStenBottom, numCoe, func);
+	custenCreate2DXYpFun(
+		&xyDirCompute,
+
+		deviceNum,
+
+		numTiles,
+
+		nxDevice,
+		nyDevice,
+
+		BLOCK_X,
+		BLOCK_Y,
+
+		dataOutput,
+		dataInput,
+		coe,
+
+		numStenHoriz,
+		numStenLeft,
+		numStenRight,
+
+		numStenVert,
+		numStenTop,
+		numStenBottom,
+
+		func
+	);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();
@@ -159,29 +209,32 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DYpFun(&yDirCompute, 0);
+	custenCompute2DXYpFun(&xyDirCompute, 0);
 
-	// Synchronise at the end to ensure everything is complete
+	// // Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
 
-	for (int j = 0; j < ny; j++)
-	{
-		for (int i = 0; i < nx; i++)
-		{
-			printf("%lf %lf %lf %d %d \n", dataOld[j * nx + i], dataNew[j * nx + i], answer[j * nx + i], i, j);
-		}
-	}
+	// for (int j = 0; j < ny; j++)
+	// {
+	// 	temp = j * nx;
+	// 	for (int i = 0; i < nx; i++)
+	// 	{
+	// 		index = temp + i;
+
+	// 		printf("%lf %lf %lf %d %d \n", dataOutput[index], answer[index], dataInput[index], i, j);
+	// 	}
+	// }
 
 	// -----------------------------
-	// Destroy struct and free memory
-	// -----------------------------
+	// // Destroy struct and free memory
+	// // -----------------------------
 
 	// Destroy struct
-	custenDestroy2DYpFun(&yDirCompute);
+	custenDestroy2DXYpFun(&xyDirCompute);
 
 	// Free memory at the end
-	cudaFree(dataOld);
-	cudaFree(dataNew);
+	cudaFree(dataInput);
+	cudaFree(dataOutput);
 	cudaFree(answer);
 	cudaFree(coe);
 	

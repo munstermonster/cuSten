@@ -16,7 +16,6 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-
 // ---------------------------------------------------------------------
 //  Standard Libraries and Headers
 // ---------------------------------------------------------------------
@@ -191,7 +190,20 @@ void custenCompute2DXpFun
 		cudaEventSynchronize(pt_cuSten->events[1]);
 
 		// Preform the computation on the current tile
-		kernel2DXpFun<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(pt_cuSten->dataOutput[tile], pt_cuSten->dataInput[tile], pt_cuSten->coe, pt_cuSten->devFunc, pt_cuSten->numStenLeft, pt_cuSten->numStenRight, pt_cuSten->numCoe, pt_cuSten->nxLocal, pt_cuSten->nyLocal, pt_cuSten->BLOCK_X, pt_cuSten->nxDevice);
+		kernel2DXpFun<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(
+			pt_cuSten->dataOutput[tile], 
+			pt_cuSten->dataInput[tile], 
+			pt_cuSten->coe, 
+			pt_cuSten->devFunc, 
+			pt_cuSten->numStenLeft,
+			pt_cuSten->numStenRight, 
+			pt_cuSten->numCoe, 
+			pt_cuSten->nxLocal, 
+			pt_cuSten->nyLocal, 
+			pt_cuSten->BLOCK_X, 
+			pt_cuSten->nxDevice
+		);
+
 		cudaEventRecord(pt_cuSten->events[0], pt_cuSten->streams[0]);
 
 		// Offload should the user want to

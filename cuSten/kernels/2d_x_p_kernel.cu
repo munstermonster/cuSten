@@ -38,43 +38,50 @@
 __global__ void kernel2DXp
 (
 
-	double* dataNew,  					// Answer data
+	double* dataOutput,  					// Answer data
 
-	double* dataOld,					// Input data
+	double* dataInput,					// Input data
 
 	const double* d_weights,       		// Stencil weights
 
-	const int sizeStencil,				// Stencil width
-	const int stenLeft,					// Number of points to the left
-	const int stenRight,				// Number of points to the right
+	const int numSten,					// Stencil width
+	const int numStenLeft,				// Number of points to the left
+	const int numStenRight,				// Number of points to the right
 
 	const int nxLocal,					// Number of points in shared memory in x direction
 	const int nyLocal,					// Number of points in shared memory in y direction
 
 	const int BLOCK_X,					// Number of threads in block in y
 
-	const int nx						// Total number of points in x
+	const int nxDevice					// Number of points in x on the device
 )
 {	
+	// -----------------------------	
 	// Allocate the shared memory
-	extern __shared__ int memory[];
+	// -----------------------------
 
+	extern __shared__ int memory[];
+	
 	double* arrayLocal = (double*)&memory;
 	double* weigthsLocal = (double*)&arrayLocal[nxLocal * nyLocal];
 
 	// Move the weigths into shared memory
 	#pragma unroll
-	for (int k = 0; k < sizeStencil; k++)
+	for (int k = 0; k < numSten; k++)
 	{
 		weigthsLocal[k] = d_weights[k];
 	}
+
+	// -----------------------------
+	// Set the indexing
+	// -----------------------------
 
 	// True matrix index
     int globalIdx = blockDim.x * blockIdx.x + threadIdx.x;
 	int globalIdy = blockDim.y * blockIdx.y + threadIdx.y;
 
 	// Local matrix index
-	int localIdx = threadIdx.x + stenLeft;
+	int localIdx = threadIdx.x + numStenLeft;
 	int localIdy = threadIdx.y;
 
 	// Local sum variable
@@ -83,91 +90,84 @@ __global__ void kernel2DXp
 	// Set index for summing stencil
 	int stenSet;
 
-	// Set all interior blocks
-	if (blockIdx.x != 0 && blockIdx.x != nx / (BLOCK_X) - 1)
+	// -----------------------------
+	// Set interior
+	// -----------------------------
+
+	arrayLocal[localIdy * nxLocal + localIdx] = dataInput[globalIdy * nxDevice + globalIdx];
+
+	// -----------------------------
+	// Set x boundaries
+	// -----------------------------
+
+	// If block is in the interior
+	if (blockIdx.x != 0 && blockIdx.x != nxDevice / BLOCK_X - 1)
 	{
-		arrayLocal[localIdy * nxLocal + localIdx] = dataOld[globalIdy * nx + globalIdx];
 
-		if (threadIdx.x < stenLeft)
+		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataOld[globalIdy * nx + (globalIdx - stenLeft)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (globalIdx - numStenLeft)];
 		}
 
-		if (threadIdx.x < stenRight)
+		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataOld[globalIdy * nx + globalIdx + BLOCK_X];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + globalIdx + BLOCK_X];
 		}
-
-		__syncthreads();
-
-
-		stenSet = localIdy * nxLocal + threadIdx.x;
-
-		#pragma unroll
-		for (int k = 0; k < sizeStencil; k++)
-		{
-			sum += weigthsLocal[k] * arrayLocal[stenSet + k];
-		}
-
-		dataNew[globalIdy * nx + globalIdx] = sum;
 	}
 
-	// Set all left boundary blocks
+	// If block is on the left boundary
 	if (blockIdx.x == 0)
 	{
-		arrayLocal[localIdy * nxLocal + localIdx] = dataOld[globalIdy * nx + globalIdx];
+		arrayLocal[localIdy * nxLocal + localIdx] = dataInput[globalIdy * nxDevice + globalIdx];
 
-		if (threadIdx.x < stenLeft)
+		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataOld[globalIdy * nx + (nx - stenLeft + threadIdx.x)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (nxDevice - numStenLeft + threadIdx.x)];
 		}
 
-		if (threadIdx.x < stenRight)
+		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataOld[globalIdy * nx + globalIdx + BLOCK_X];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + globalIdx + BLOCK_X];
 		}
-
-		__syncthreads();
-
-		stenSet = localIdy * nxLocal + threadIdx.x;
-
-		#pragma unroll
-		for (int k = 0; k < sizeStencil; k++)
-		{
-			sum += weigthsLocal[k] * arrayLocal[stenSet + k];
-		}
-
-		dataNew[globalIdy * nx + globalIdx] = sum;
-
 	}
 
 	// Set the right boundary blocks
-	if (blockIdx.x == nx / BLOCK_X - 1)
+	if (blockIdx.x == nxDevice / BLOCK_X - 1)
 	{
-		arrayLocal[localIdy * nxLocal + threadIdx.x + stenLeft] = dataOld[globalIdy * nx + globalIdx];
+		arrayLocal[localIdy * nxLocal + threadIdx.x + numStenLeft] = dataInput[globalIdy * nxDevice + globalIdx];
 
-		if (threadIdx.x < stenLeft)
+		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataOld[globalIdy * nx + (globalIdx - stenLeft)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (globalIdx - numStenLeft)];
 		}
 
-		if (threadIdx.x < stenRight)
+		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataOld[globalIdy * nx + threadIdx.x];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + threadIdx.x];
 		}
-
-		__syncthreads();
-
-		stenSet = localIdy * nxLocal + threadIdx.x;
-
-		#pragma unroll
-		for (int k = 0; k < sizeStencil; k++)
-		{
-			sum += weigthsLocal[k] * arrayLocal[stenSet + k];
-		}
-
-		dataNew[globalIdy * nx + globalIdx] = sum;
 	}
+
+	// -----------------------------
+	// Compute the stencil
+	// -----------------------------
+
+	__syncthreads();
+
+	stenSet = localIdy * nxLocal + threadIdx.x;
+
+	#pragma unroll
+	for (int k = 0; k < numSten; k++)
+	{
+		sum += weigthsLocal[k] * arrayLocal[stenSet + k];
+	}
+
+	__syncthreads();
+
+	// -----------------------------
+	// Copy back to global
+	// -----------------------------
+
+	dataOutput[globalIdy * nxDevice + globalIdx] = sum;
 }
 
 // ---------------------------------------------------------------------

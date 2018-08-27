@@ -1,5 +1,5 @@
 # Andrew Gloster
-# July 2018
+# August 2018
 # Makefile for cuSten
 
 #   Copyright 2018 Andrew Gloster
@@ -21,11 +21,11 @@ NVCC = nvcc
 NVFLAGS = -O3 -lineinfo --cudart=static -arch=compute_61 -code=compute_61 -std=c++11 -dc
 FNVFLAGS = -O3 -lineinfo --cudart=static -arch=compute_61 -code=compute_61 -std=c++11
 
-MAIN = 2d_x_p 2d_x_np 2d_x_p_fun 2d_x_np_fun 2d_y_p 2d_y_p_fun 2d_y_np
-MAINOBJ = 2d_x_p.o 2d_x_np.o 2d_x_p_fun.o 2d_x_np_fun.o 2d_y_p.o 2d_y_p_fun.o 2d_y_np.o
+MAIN = 2d_x_p 2d_x_np 2d_x_p_fun 2d_x_np_fun 2d_y_p 2d_y_p_fun 2d_y_np 2d_xy_p 2d_xy_p_fun
+MAINOBJ = 2d_x_p.o 2d_x_np.o 2d_x_p_fun.o 2d_x_np_fun.o 2d_y_p.o 2d_y_p_fun.o 2d_y_np.o 2d_xy_p.o 2d_xy_p_fun.o
 
 STRUCTDIR = cuSten/structs/
-STRUCTOBJ = custenCreateDestroy2DXnp.o custenCreateDestroy2DXp.o custenCreateDestroy2DXpFun.o custenCreateDestroy2DXnpFun.o custenCreateDestroy2DYp.o custenCreateDestroy2DYpFun.o custenCreateDestroy2DYnp.o
+STRUCTOBJ = custenCreateDestroy2DXnp.o custenCreateDestroy2DXp.o custenCreateDestroy2DXpFun.o custenCreateDestroy2DXnpFun.o custenCreateDestroy2DYp.o custenCreateDestroy2DYpFun.o custenCreateDestroy2DYnp.o custenCreateDestroy2DXYp.o custenCreateDestroy2DXYpFun.o
 STRUCTTAR = $(addprefix $(STRUCTDIR), $(STRUCTOBJ))
 
 UTILDIR = cuSten/util/
@@ -33,7 +33,7 @@ UTILOBJ = error.o
 UTILTAR = $(addprefix $(UTILDIR), $(UTILOBJ))
 
 KERNELDIR = cuSten/kernels/
-KERNELOBJ = 2d_x_np_kernel.o 2d_x_p_kernel.o 2d_x_p_fun_kernel.o 2d_x_np_fun_kernel.o 2d_y_p_kernel.o 2d_y_p_fun_kernel.o 2d_y_np_kernel.o
+KERNELOBJ = 2d_x_np_kernel.o 2d_x_p_kernel.o 2d_x_p_fun_kernel.o 2d_x_np_fun_kernel.o 2d_y_p_kernel.o 2d_y_p_fun_kernel.o 2d_y_np_kernel.o 2d_xy_p_kernel.o 2d_xy_p_fun_kernel.o
 KERNELTAR = $(addprefix $(KERNELDIR), $(KERNELOBJ))
 
 # ----------------------
@@ -91,6 +91,20 @@ all: $(MAIN)
 
 2d_y_np.o: 2d_y_np.cu
 	$(NVCC) $(NVFLAGS) -c 2d_y_np.cu
+
+# 2D xy periodic
+2d_xy_p: 2d_xy_p.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+	$(NVCC) -o 2d_xy_p $^ $(FNVFLAGS)
+
+2d_xy_p.o: 2d_xy_p.cu
+	$(NVCC) $(NVFLAGS) -c 2d_xy_p.cu
+
+# 2D xy periodic
+2d_xy_p_fun: 2d_xy_p_fun.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+	$(NVCC) -o 2d_xy_p_fun $^ $(FNVFLAGS)
+
+2d_xy_p_fun.o: 2d_xy_p_fun.cu
+	$(NVCC) $(NVFLAGS) -c 2d_xy_p_fun.cu
 
 # ----------------------
 # Library Functions

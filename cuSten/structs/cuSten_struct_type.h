@@ -56,7 +56,7 @@ typedef struct
 	// Number of y points on a tile
  	int nyTile;
 
-	// Number of points in the stencil
+	// Number of points in the stencil (or total points when cross derivative)
 	int numSten;
 
 	// Number of points to the left in the stencil
@@ -70,6 +70,12 @@ typedef struct
 	
 	// Number of points to the bottom in the stencil
 	int numStenBottom;
+
+	// Number of points in a horizontal stencil
+	int numStenHoriz;
+
+	// Number of points in a vertical stencil
+	int numStenVert;
 
 	// Number of threads in x
 	int BLOCK_X;

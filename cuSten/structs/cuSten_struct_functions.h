@@ -283,6 +283,80 @@ void custenDestroy2DYnp(
 	cuSten_t* pt_cuSten			// Pointer to the compute struct type
 );
 
+// ----------------------------------------
+// 2D xy direction periodic
+// ----------------------------------------
+
+// Function to create the struct for a 2D xy direction periodic
+void custenCreate2DXYp(
+	cuSten_t* pt_cuSten,
+
+	int deviceNum,
+
+	int numTiles,
+
+	int nxDevice,
+	int nyDevice,
+
+	int BLOCK_X,
+	int BLOCK_Y,
+
+	double* dataNew,
+	double* dataOld,
+	double* weights,
+
+	int numStenHoriz,
+	int numStenLeft,
+	int numStenRight,
+
+	int numStenVert,
+	int numStenTop,
+	int numStenBottom
+);
+
+// Function to destroy the struct for a 2D xy direction periodic
+void custenDestroy2DXYp(
+	cuSten_t* pt_cuSten
+);
+
+// ----------------------------------------
+// 2D xy direction periodic user function
+// ----------------------------------------
+
+// Function to create the struct for a 2D xy direction periodic user function
+void custenCreate2DXYpFun(
+	cuSten_t* pt_cuSten,
+
+	int deviceNum,
+
+	int numTiles,
+
+	int nxDevice,
+	int nyDevice,
+
+	int BLOCK_X,
+	int BLOCK_Y,
+
+	double* dataNew,
+	double* dataOld,
+	double* coe,
+
+	int numStenHoriz,
+	int numStenLeft,
+	int numStenRight,
+
+	int numStenVert,
+	int numStenTop,
+	int numStenBottom,
+
+	double* func
+);
+
+// Function to destroy the struct for a 2D xy direction periodic user function
+void custenDestroy2DXYpFun(
+	cuSten_t* pt_cuSten
+);
+
 // ---------------------------------------------------------------------
 // End of header file functions
 // ---------------------------------------------------------------------

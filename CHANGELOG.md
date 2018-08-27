@@ -6,11 +6,17 @@ CHANGELOG
 
 | Contents               |
 | :--------------------- |
+| [cuSten 1.2](#cuSten-12) |
 | [cuSten 1.1](#cuSten-11) |
 | [cuSten 1.0](#cuSten-10) |
 
 
 </details>
+
+cuSten 1.1
+---------
+
+* Added 2D XY periodic derivatives with and without user defined functions.
 
 cuSten 1.1
 ---------

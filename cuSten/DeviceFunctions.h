@@ -44,8 +44,11 @@
 // Data -- Coefficients -- Current node index
 typedef double (*devArg1X)(double*, double*, int);
 
-// Data -- Coefficients -- Current node index -- Points in x (required to jump)
+// Data -- Coefficients -- Current node index -- Jump
 typedef double (*devArg1Y)(double*, double*, int, int);
+
+// Data -- Coefficients -- Current node index -- Jump -- Points in x -- Points in y
+typedef double (*devArg1XY)(double*, double*, int, int, int, int);
 
 // ---------------------------------------------------------------------
 // End of header file functions
