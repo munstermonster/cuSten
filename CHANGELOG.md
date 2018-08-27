@@ -13,7 +13,7 @@ CHANGELOG
 
 </details>
 
-cuSten 1.1
+cuSten 1.2
 ---------
 
 * Added 2D XY periodic derivatives with and without user defined functions.
