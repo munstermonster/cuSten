@@ -499,11 +499,6 @@ __global__ void kernel2DXYp
 		{
 			sum += weigthsLocal[weight] * arrayLocal[stenSet + temp + i];
 
-			if (globalIdx == 63 && globalIdy == 61)
-			{
-				printf("%lf %lf %d %d \n", arrayLocal[stenSet + temp + i], weigthsLocal[weight], i , j);
-			}
-
 			weight++;
 		} 
 	}
