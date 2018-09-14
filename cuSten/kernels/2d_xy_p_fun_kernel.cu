@@ -428,7 +428,7 @@ __global__ void kernel2DXYpFun
 			// Top Left
 			if (threadIdx.x < numStenLeft && threadIdx.y < numStenTop)
 			{
-				arrayLocal[threadIdx.y * nxLocal + threadIdx.x] = dataInput[(globalIdy - numStenTop) * nxDevice + (globalIdx - numStenLeft)];
+				arrayLocal[threadIdx.y * nxLocal + threadIdx.x] = dataInput[(globalIdy - numStenTop) * nxDevice + (nxDevice - numStenLeft + threadIdx.x)];
 			}
 
 			// Top Right
@@ -450,7 +450,7 @@ __global__ void kernel2DXYpFun
 			}		
 		}
 
-		// If block is on teh right boundary
+		// If block is on the right boundary
 		if (blockIdx.x == nxDevice / BLOCK_X - 1)
 		{
 			// Top Left
@@ -462,7 +462,7 @@ __global__ void kernel2DXYpFun
 			// Top Right
 			if (threadIdx.x < numStenRight && threadIdx.y < numStenTop)
 			{
-				arrayLocal[threadIdx.y * nxLocal + (localIdx + BLOCK_X)] = dataInput[(globalIdy - numStenTop) * nxDevice + (globalIdx + BLOCK_X)];
+				arrayLocal[threadIdx.y * nxLocal + (localIdx + BLOCK_X)] = dataInput[(globalIdy - numStenTop) * nxDevice + threadIdx.x];
 			}
 
 			// Bottom Left
@@ -477,7 +477,7 @@ __global__ void kernel2DXYpFun
 				arrayLocal[(localIdy + BLOCK_Y) * nxLocal + (localIdx + BLOCK_X)] =  boundaryBottom[threadIdx.y * nxDevice + threadIdx.x];
 			}
 		}
-	}	
+	}
 
 	// -----------------------------
 	// Compute the stencil

@@ -6,6 +6,7 @@ CHANGELOG
 
 | Contents               |
 | :--------------------- |
+| [cuSten 1.2.1](#cuSten-121) |
 | [cuSten 1.2](#cuSten-12) |
 | [cuSten 1.1](#cuSten-11) |
 | [cuSten 1.0](#cuSten-10) |
@@ -13,7 +14,12 @@ CHANGELOG
 
 </details>
 
-cuSten 1.1
+cuSten 1.2.1
+---------
+
+* Fixed a bug in 2D xy periodic derivatives, corners of shared memory blocks copied incorrectly
+
+cuSten 1.2
 ---------
 
 * Added 2D XY periodic derivatives with and without user defined functions.

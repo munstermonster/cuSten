@@ -431,7 +431,7 @@ __global__ void kernel2DXYp
 			// Top Left
 			if (threadIdx.x < numStenLeft && threadIdx.y < numStenTop)
 			{
-				arrayLocal[threadIdx.y * nxLocal + threadIdx.x] = dataInput[(globalIdy - numStenTop) * nxDevice + (globalIdx - numStenLeft)];
+				arrayLocal[threadIdx.y * nxLocal + threadIdx.x] = dataInput[(globalIdy - numStenTop) * nxDevice + (nxDevice - numStenLeft + threadIdx.x)];
 			}
 
 			// Top Right
@@ -453,7 +453,7 @@ __global__ void kernel2DXYp
 			}		
 		}
 
-		// If block is on teh right boundary
+		// If block is on the right boundary
 		if (blockIdx.x == nxDevice / BLOCK_X - 1)
 		{
 			// Top Left
@@ -465,7 +465,7 @@ __global__ void kernel2DXYp
 			// Top Right
 			if (threadIdx.x < numStenRight && threadIdx.y < numStenTop)
 			{
-				arrayLocal[threadIdx.y * nxLocal + (localIdx + BLOCK_X)] = dataInput[(globalIdy - numStenTop) * nxDevice + (globalIdx + BLOCK_X)];
+				arrayLocal[threadIdx.y * nxLocal + (localIdx + BLOCK_X)] = dataInput[(globalIdy - numStenTop) * nxDevice + threadIdx.x];
 			}
 
 			// Bottom Left
@@ -498,6 +498,11 @@ __global__ void kernel2DXYp
 		for (int i = 0; i < numStenHoriz; i++) // Allow for the point we're actually at
 		{
 			sum += weigthsLocal[weight] * arrayLocal[stenSet + temp + i];
+
+			if (globalIdx == 63 && globalIdy == 61)
+			{
+				printf("%lf %lf %d %d \n", arrayLocal[stenSet + temp + i], weigthsLocal[weight], i , j);
+			}
 
 			weight++;
 		} 
