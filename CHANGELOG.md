@@ -6,6 +6,7 @@ CHANGELOG
 
 | Contents               |
 | :--------------------- |
+| [cuSten 1.3](#cuSten-13) |
 | [cuSten 1.2.1](#cuSten-121) |
 | [cuSten 1.2](#cuSten-12) |
 | [cuSten 1.1](#cuSten-11) |
@@ -13,6 +14,11 @@ CHANGELOG
 
 
 </details>
+
+cuSten 1.3
+---------
+
+* Added 2D Advection with WENO - Also changed around the prefetching for this code, this needs to be done with the rest of them.
 
 cuSten 1.2.1
 ---------

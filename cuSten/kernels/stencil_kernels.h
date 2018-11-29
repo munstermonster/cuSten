@@ -140,6 +140,17 @@ void custenCompute2DXYpFun
 	bool offload
 );
 
+// ----------------------------------------
+// 2D xy WENO periodic user function
+// ----------------------------------------
+
+void custenCompute2DXYWENOADVp
+(
+	cuSten_t* pt_cuSten,
+
+	bool offload
+);
+
 // ---------------------------------------------------------------------
 // End of header file functions
 // ---------------------------------------------------------------------

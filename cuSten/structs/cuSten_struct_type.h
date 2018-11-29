@@ -98,11 +98,23 @@ typedef struct
 	// Pointers for the ouput data
 	double** dataOutput;
 
-    // Pointer for the device weights data
-    double* weights;
+	// Pointers for the input data
+	double** uVel;
+
+	// Pointers for the ouput data
+	double** vVel;
+
+	// Pointer for the device weights data
+	double* weights;
 
 	// Pointer to coefficients used
 	double* coe;
+
+	// Coefficient for WENO - x 
+	double coeDx;
+
+	// Coefficient for WENO - y
+	double coeDy;
 
 	// Number of coefficients
 	int numCoe;
@@ -125,11 +137,11 @@ typedef struct
 	// Number of points in bottom boundary data
 	int numBoundaryBottom;
 
-    // Streams to permute through
-    cudaStream_t* streams;
+	// Streams to permute through
+	cudaStream_t* streams;
 
-    // Events for tracking
-    cudaEvent_t* events;
+	// Events for tracking
+	cudaEvent_t* events;
 
 	// Function Pointer
 	double* devFunc;

@@ -357,6 +357,42 @@ void custenDestroy2DXYpFun(
 	cuSten_t* pt_cuSten
 );
 
+
+// ---------------------------------------------------------------------
+// Function to create the struct for a WENO solver in XY
+// ---------------------------------------------------------------------
+
+void custenCreate2DXYWENOADVp
+(
+	cuSten_t* pt_cuSten,
+
+	int deviceNum,
+
+	int numTiles,
+
+	int nxDevice,
+	int nyDevice,
+
+	int BLOCK_X,
+	int BLOCK_Y,
+
+	double dx,
+	double dy,
+
+	double* u,
+	double* v,
+
+	double* dataNew,
+
+	double* dataOld
+);
+
+// Function to destroy the struct for a WENO solver in XY
+void custenDestroy2DXYWENOADVp
+(
+	cuSten_t* pt_cuSten
+); 
+
 // ---------------------------------------------------------------------
 // End of header file functions
 // ---------------------------------------------------------------------
