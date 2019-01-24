@@ -1,6 +1,6 @@
 // Andrew Gloster
-// May 2018
-// Example of xy direction periodic 2D code with user function
+// November 2018
+// Example of advection in 2D with upwinding WENO
 
 //   Copyright 2018 Andrew Gloster
 
@@ -27,45 +27,17 @@
 #include "cuda.h"
 
 // ---------------------------------------------------------------------
-// Custom libraries and headers
+// cuSten - Note the file position is relative
 // ---------------------------------------------------------------------
 
-#include "cuSten/cuSten.h"
+#include "../../cuSten/cuSten.h"
 
 // ---------------------------------------------------------------------
 // MACROS
 // ---------------------------------------------------------------------
 
-#define BLOCK_X 16
-#define BLOCK_Y 32
-
-// ---------------------------------------------------------------------
-// Function Declaration
-// ---------------------------------------------------------------------
-
-__inline__ __device__ double centralDiff(double* data, double* coe, int loc, int jump, int nx, int ny)
-{	
-	double result = 0.0;
-	int temp;
-	int count = 0;
-
-	#pragma unroll
-	for (int j = 0; j < ny; j++)
-	{
-		temp = loc + j * jump;
-
-		for (int i = 0; i < nx; i++)
-		{
-			result += coe[count] * data[temp + i];
-
-			count ++;
-		}
-	}
-
-	return result;
-}
-
-__device__ devArg1XY devFunc = centralDiff;
+#define BLOCK_X 4
+#define BLOCK_Y 4
 
 // ---------------------------------------------------------------------
 // Main Program
@@ -77,8 +49,8 @@ int main()
 	int deviceNum = 0;
 
 	// Declare Domain Size
-	int nx = 8192;
-	int ny = 8192;
+	int nx = 64;
+	int ny = 64;
 
 	double lx = 2 * M_PI;
 	double ly = 2 * M_PI;
@@ -93,7 +65,8 @@ int main()
 	// Initial Conditions
 	double* dataInput;
 	double* dataOutput;
-	double* answer;
+	double* u;
+	double* v;
 
 	// -----------------------------
 	// Allocate the memory 
@@ -101,26 +74,31 @@ int main()
 
 	cudaMallocManaged(&dataInput, nx * ny * sizeof(double));
 	cudaMallocManaged(&dataOutput, nx * ny * sizeof(double));
-	cudaMallocManaged(&answer, nx * ny * sizeof(double));
+
+	cudaMallocManaged(&u, nx * ny * sizeof(double));
+	cudaMallocManaged(&v, nx * ny * sizeof(double));
 
 	// -----------------------------
 	// Set the initial conditions
 	// -----------------------------
 
-	// Loop indexes
+	// Indexing
 	int temp;
 	int index;
 
 	for (int j = 0; j < ny; j++)
 	{
 		temp = j * nx;
+
 		for (int i = 0; i < nx; i++)
 		{
 			index = temp + i;
 
-			dataInput[index] = sin(i * dx) * cos(j * dy);
+			dataInput[index] = cos(i * dx) * sin(j * dy);
 			dataOutput[index] = 0.0;
-			answer[index] = - cos(i * dx) * sin(j * dy);
+
+			u[index] = sin(j * dy);
+			v[index] = - sin(i * dx);
 		}
 	}
 
@@ -128,53 +106,19 @@ int main()
 	cudaDeviceSynchronize();
 
 	// -----------------------------
-	// Set the stencil to compute
-	// -----------------------------
-
-	int numStenHoriz = 3;
-	int numStenLeft = 1;
-	int numStenRight = 1;
-
-	int numStenVert = 3;
-	int numStenTop = 1;
-	int numStenBottom = 1;
-
-	double* coe;
-	cudaMallocManaged(&coe, numStenHoriz * numStenVert * sizeof(double));
-
-	double sigma = 1.0 / (4.0 * dx * dy);
-
-	coe[0] = 1.0 * sigma;
-	coe[1] = 0.0 * sigma;
-	coe[2] = - 1.0 * sigma;
-	coe[3] = 0.0 * sigma;
-	coe[4] = 0.0 * sigma;
-	coe[5] = 0.0 * sigma;
-	coe[6] = - 1.0 * sigma;
-	coe[7] = 0.0 * sigma;
-	coe[8] = 1.0 * sigma;
-
-	// -----------------------------
 	// Set up device
 	// -----------------------------
 
-	// Number of points per device
+	// Number of points per device, subdividing in y
 	int nxDevice = nx;
 	int nyDevice = ny;
 
 	// Set up the compute device structs
-	cuSten_t xyDirCompute;
-
-	// Copy the function to device memory
-	double* func;
-	cudaMemcpyFromSymbol(&func, devFunc, sizeof(devArg1XY));
-
-	// Synchronise to ensure everything initialised
-	cudaDeviceSynchronize();
+	cuSten_t xyWENOCompute;
 
 	// Initialise the instance of the stencil
-	custenCreate2DXYpFun(
-		&xyDirCompute,
+	custenCreate2DXYWENOADVp(	
+		&xyWENOCompute,
 
 		deviceNum,
 
@@ -186,19 +130,15 @@ int main()
 		BLOCK_X,
 		BLOCK_Y,
 
+		dx,
+		dy,
+
+		u,
+		v,
+
 		dataOutput,
-		dataInput,
-		coe,
 
-		numStenHoriz,
-		numStenLeft,
-		numStenRight,
-
-		numStenVert,
-		numStenTop,
-		numStenBottom,
-
-		func
+		dataInput
 	);
 
 	// Synchronise to ensure everything initialised
@@ -209,34 +149,24 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DXYpFun(&xyDirCompute, 0);
+	custenCompute2DXYWENOADVp(&xyWENOCompute, 0);
 
 	// // Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
 
-	// for (int j = 0; j < ny; j++)
-	// {
-	// 	temp = j * nx;
-	// 	for (int i = 0; i < nx; i++)
-	// 	{
-	// 		index = temp + i;
-
-	// 		printf("%lf %lf %lf %d %d \n", dataOutput[index], answer[index], dataInput[index], i, j);
-	// 	}
-	// }
-
 	// -----------------------------
-	// // Destroy struct and free memory
-	// // -----------------------------
+	// Destroy struct and free memory
+	// -----------------------------
 
 	// Destroy struct
-	custenDestroy2DXYpFun(&xyDirCompute);
+	custenDestroy2DXYWENOADVp(&xyWENOCompute);
 
 	// Free memory at the end
 	cudaFree(dataInput);
 	cudaFree(dataOutput);
-	cudaFree(answer);
-	cudaFree(coe);
+
+	cudaFree(u);
+	cudaFree(v);
 	
 	// Return 0 when the program completes
 	return 0;

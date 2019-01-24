@@ -1,6 +1,6 @@
 // Andrew Gloster
 // May 2018
-// Example of y direction periodic 2D code
+// Example of xy direction periodic 2D code
 
 //   Copyright 2018 Andrew Gloster
 
@@ -25,21 +25,19 @@
 #include <iostream>
 #include <cstdio>
 #include "cuda.h"
-#include "omp.h"
 
 // ---------------------------------------------------------------------
-// Custom libraries and headers
+// cuSten - Note the file position is relative
 // ---------------------------------------------------------------------
 
-#include "cuSten/cuSten.h"
+#include "../../cuSten/cuSten.h"
 
 // ---------------------------------------------------------------------
 // MACROS
 // ---------------------------------------------------------------------
 
-#define BLOCK_X 16
-#define BLOCK_Y 16
-
+#define BLOCK_X 32
+#define BLOCK_Y 32
 
 // ---------------------------------------------------------------------
 // Main Program
@@ -51,28 +49,30 @@ int main()
 	int deviceNum = 0;
 
 	// Declare Domain Size
-	int nx = 512;
-	int ny = 512;
+	int nx = 8192;
+	int ny = 8192;
 
+	double lx = 2 * M_PI;
 	double ly = 2 * M_PI;
 
 	// Domain spacings
-	double dy = ly / (double) (nx);
+	double dx = lx / (double) (nx);
+	double dy = ly / (double) (ny);
 
 	// Set the number of tiles per device
-	int numTiles = 4;
+	int numTiles = 1;
 
 	// Initial Conditions
-	double* dataOld;
-	double* dataNew;
+	double* dataInput;
+	double* dataOutput;
 	double* answer;
 
 	// -----------------------------
 	// Allocate the memory 
 	// -----------------------------
 
-	cudaMallocManaged(&dataOld, nx * ny * sizeof(double));
-	cudaMallocManaged(&dataNew, nx * ny * sizeof(double));
+	cudaMallocManaged(&dataInput, nx * ny * sizeof(double));
+	cudaMallocManaged(&dataOutput, nx * ny * sizeof(double));
 	cudaMallocManaged(&answer, nx * ny * sizeof(double));
 
 	// -----------------------------
@@ -83,30 +83,41 @@ int main()
 	{
 		for (int i = 0; i < nx; i++)
 		{
-			dataOld[j * nx + i] = sin(j * dy);
-			dataNew[j * nx + i] = 0.0;
-			answer[j * nx + i] =- sin(j * dy);
+			dataInput[j * nx + i] = sin(i * dx) * cos(j * dy);
+			dataOutput[j * nx + i] = 0.0;
+			answer[j * nx + i] = - cos(i * dx) * sin(j * dy);
 		}
 	}
 
-
-	// // Ensure all the above is completed
+	// Ensure all the above is completed
 	cudaDeviceSynchronize();
 
 	// -----------------------------
 	// Set the stencil to compute
 	// -----------------------------
 
-	int numSten = 3;
+	int numStenHoriz = 3;
+	int numStenLeft = 1;
+	int numStenRight = 1;
+
+	int numStenVert = 3;
 	int numStenTop = 1;
 	int numStenBottom = 1;
 
 	double* weights;
-	cudaMallocManaged(&weights, numSten * sizeof(double));
+	cudaMallocManaged(&weights, numStenHoriz * numStenVert * sizeof(double));
 
-	weights[0] = 1.0 / pow(dy, 2.0);
-	weights[1] = - 2.0 / pow(dy, 2.0);
-	weights[2] = 1.0 / pow(dy, 2.0);
+	double sigma = 1.0 / (4.0 * dx * dy);
+
+	weights[0] = 1.0 * sigma;
+	weights[1] = 0.0 * sigma;
+	weights[2] = - 1.0 * sigma;
+	weights[3] = 0.0 * sigma;
+	weights[4] = 0.0 * sigma;
+	weights[5] = 0.0 * sigma;
+	weights[6] = - 1.0 * sigma;
+	weights[7] = 0.0 * sigma;
+	weights[8] = 1.0 * sigma;
 
 	// -----------------------------
 	// Set up device
@@ -117,10 +128,34 @@ int main()
 	int nyDevice = ny;
 
 	// Set up the compute device structs
-	cuSten_t yDirCompute;
+	cuSten_t xyDirCompute;
 
 	// Initialise the instance of the stencil
-	custenCreate2DYp(&yDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenTop, numStenBottom);
+	custenCreate2DXYp(
+		&xyDirCompute,
+
+		deviceNum,
+
+		numTiles,
+
+		nxDevice,
+		nyDevice,
+
+		BLOCK_X,
+		BLOCK_Y,
+
+		dataOutput,
+		dataInput,
+		weights,
+
+		numStenHoriz,
+		numStenLeft,
+		numStenRight,
+
+		numStenVert,
+		numStenTop,
+		numStenBottom
+	);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();
@@ -130,29 +165,21 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DYp(&yDirCompute, 0);
+	custenCompute2DXYp(&xyDirCompute, 0);
 
 	// // Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
-
-	for (int j = 0; j < 256; j++)
-	{
-		for (int i = 0; i < nx; i++)
-		{
-			printf("%lf %lf %d %d \n", dataNew[j * nx + i], answer[j * nx + i], i, j);
-		}
-	}
 
 	// -----------------------------
 	// Destroy struct and free memory
 	// -----------------------------
 
 	// Destroy struct
-	custenDestroy2DYp(&yDirCompute);
+	custenDestroy2DXYp(&xyDirCompute);
 
 	// Free memory at the end
-	cudaFree(dataOld);
-	cudaFree(dataNew);
+	cudaFree(dataInput);
+	cudaFree(dataOutput);
 	cudaFree(answer);
 	cudaFree(weights);
 	

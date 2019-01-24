@@ -29,7 +29,7 @@
 // ---------------------------------------------------------------------
 
 #include "../util/util.h"
-#include "../structs/cuSten_struct_type.h"
+#include "../struct/cuSten_struct_type.h"
 
 // ---------------------------------------------------------------------
 // Code to apply the WENO stencil

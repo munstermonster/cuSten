@@ -36,101 +36,113 @@ KERNELDIR = cuSten/kernels/
 KERNELOBJ = 2d_x_np_kernel.o 2d_x_p_kernel.o 2d_x_p_fun_kernel.o 2d_x_np_fun_kernel.o 2d_y_p_kernel.o 2d_y_p_fun_kernel.o 2d_y_np_kernel.o 2d_xy_p_kernel.o 2d_xy_p_fun_kernel.o 2d_xyADVWENO_p_kernel.o
 KERNELTAR = $(addprefix $(KERNELDIR), $(KERNELOBJ))
 
+OBJDIR = obj
+
 # ----------------------
 # Possible functions
 # ---------------------
 
 # Make everything
-all: $(MAIN)
+# all: $(OBJDIR)/%.o
 
-# 2D x periodic
-2d_x_p: 2d_x_p.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
-	$(NVCC) -o 2d_x_p $^ $(FNVFLAGS)
+# bin/$(MAIN):$(OBJDIR)/%.o 
+# 	$(NVCC) -o bin/$(MAIN) $^ $(FNVFLAGS)
 
-2d_x_p.o: 2d_x_p.cu
-	$(NVCC) $(NVFLAGS) -c 2d_x_p.cu
+# $(OBJDIR)/%.o: %.cu $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+# 	$(NVCC) $(NVFLAGS) -c -o $@ $<
+# # 2D x periodic
+# 2d_x_p: 2d_x_p.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+# 	$(NVCC) -o 2d_x_p $^ $(FNVFLAGS)
 
-# 2D x non periodic
-2d_x_np: 2d_x_np.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
-	$(NVCC) -o 2d_x_np $^ $(FNVFLAGS)
+# 2d_x_p.o: 2d_x_p.cu
+# 	$(NVCC) $(NVFLAGS) -c 2d_x_p.cu
 
-2d_x_np.o: 2d_x_np.cu
-	$(NVCC) $(NVFLAGS) -c 2d_x_np.cu
+# # 2D x non periodic
+# 2d_x_np: 2d_x_np.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+# 	$(NVCC) -o 2d_x_np $^ $(FNVFLAGS)
 
-# 2D x periodic function
-2d_x_p_fun: 2d_x_p_fun.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
-	$(NVCC) -o 2d_x_p_fun $^ $(FNVFLAGS)
+# 2d_x_np.o: 2d_x_np.cu
+# 	$(NVCC) $(NVFLAGS) -c 2d_x_np.cu
 
-2d_x_p_fun.o: 2d_x_p_fun.cu
-	$(NVCC) $(NVFLAGS) -c 2d_x_p_fun.cu
+# # 2D x periodic function
+# 2d_x_p_fun: 2d_x_p_fun.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+# 	$(NVCC) -o 2d_x_p_fun $^ $(FNVFLAGS)
 
-# 2D x non periodic function
-2d_x_np_fun: 2d_x_np_fun.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
-	$(NVCC) -o 2d_x_np_fun $^ $(FNVFLAGS)
+# 2d_x_p_fun.o: 2d_x_p_fun.cu
+# 	$(NVCC) $(NVFLAGS) -c 2d_x_p_fun.cu
 
-2d_x_np_fun.o: 2d_x_np_fun.cu
-	$(NVCC) $(NVFLAGS) -c 2d_x_np_fun.cu
+# # 2D x non periodic function
+# 2d_x_np_fun: 2d_x_np_fun.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+# 	$(NVCC) -o 2d_x_np_fun $^ $(FNVFLAGS)
 
-# 2D y periodic 
-2d_y_p: 2d_y_p.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
-	$(NVCC) -o 2d_y_p $^ $(FNVFLAGS)
+# 2d_x_np_fun.o: 2d_x_np_fun.cu
+# 	$(NVCC) $(NVFLAGS) -c 2d_x_np_fun.cu
 
-2d_y_p.o: 2d_y_p.cu
-	$(NVCC) $(NVFLAGS) -c 2d_y_p.cu
+# # 2D y periodic 
+# 2d_y_p: 2d_y_p.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+# 	$(NVCC) -o 2d_y_p $^ $(FNVFLAGS)
 
-# 2D y periodic function
-2d_y_p_fun: 2d_y_p_fun.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
-	$(NVCC) -o 2d_y_p_fun $^ $(FNVFLAGS)
+# 2d_y_p.o: 2d_y_p.cu
+# 	$(NVCC) $(NVFLAGS) -c 2d_y_p.cu
 
-2d_y_p_fun.o: 2d_y_p_fun.cu
-	$(NVCC) $(NVFLAGS) -c 2d_y_p_fun.cu
+# # 2D y periodic function
+# 2d_y_p_fun: 2d_y_p_fun.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+# 	$(NVCC) -o 2d_y_p_fun $^ $(FNVFLAGS)
 
-# 2D y non periodic
-2d_y_np: 2d_y_np.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
-	$(NVCC) -o 2d_y_np $^ $(FNVFLAGS)
+# 2d_y_p_fun.o: 2d_y_p_fun.cu
+# 	$(NVCC) $(NVFLAGS) -c 2d_y_p_fun.cu
 
-2d_y_np.o: 2d_y_np.cu
-	$(NVCC) $(NVFLAGS) -c 2d_y_np.cu
+# # 2D y non periodic
+# 2d_y_np: 2d_y_np.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+# 	$(NVCC) -o 2d_y_np $^ $(FNVFLAGS)
 
-# 2D xy periodic
-2d_xy_p: 2d_xy_p.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
-	$(NVCC) -o 2d_xy_p $^ $(FNVFLAGS)
+# 2d_y_np.o: 2d_y_np.cu
+# 	$(NVCC) $(NVFLAGS) -c 2d_y_np.cu
 
-2d_xy_p.o: 2d_xy_p.cu
-	$(NVCC) $(NVFLAGS) -c 2d_xy_p.cu
+# # 2D xy periodic
+# 2d_xy_p: 2d_xy_p.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+# 	$(NVCC) -o 2d_xy_p $^ $(FNVFLAGS)
 
-# 2D xy periodic
-2d_xy_p_fun: 2d_xy_p_fun.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
-	$(NVCC) -o 2d_xy_p_fun $^ $(FNVFLAGS)
+# 2d_xy_p.o: 2d_xy_p.cu
+# 	$(NVCC) $(NVFLAGS) -c 2d_xy_p.cu
 
-2d_xy_p_fun.o: 2d_xy_p_fun.cu
-	$(NVCC) $(NVFLAGS) -c 2d_xy_p_fun.cu
+# # 2D xy periodic
+# 2d_xy_p_fun: 2d_xy_p_fun.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+# 	$(NVCC) -o 2d_xy_p_fun $^ $(FNVFLAGS)
 
-# 2D xy periodic
-2d_xyWENOADV_p: 2d_xyWENOADV_p.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
-	$(NVCC) -o 2d_xyWENOADV_p $^ $(FNVFLAGS)
+# 2d_xy_p_fun.o: 2d_xy_p_fun.cu
+# 	$(NVCC) $(NVFLAGS) -c 2d_xy_p_fun.cu
 
-2d_xyWENOADV_p.o: 2d_xyWENOADV_p.cu
-	$(NVCC) $(NVFLAGS) -c 2d_xyWENOADV_p.cu
+# # 2D xy periodic
+# 2d_xyWENOADV_p: 2d_xyWENOADV_p.o $(STRUCTTAR) $(KERNELTAR) $(UTILTAR) $(DEVFUN)
+# 	$(NVCC) -o 2d_xyWENOADV_p $^ $(FNVFLAGS)
+
+# 2d_xyWENOADV_p.o: 2d_xyWENOADV_p.cu
+# 	$(NVCC) $(NVFLAGS) -c 2d_xyWENOADV_p.cu
 
 # ----------------------
 # Library Functions
 # ---------------------
 
-$(STRUCTTAR): %.o: %.cu
-	$(NVCC) -c $(NVFLAGS) $< -o $@
+# $(STRUCTTAR): %.o: %.cu
+# 	$(NVCC) -c $(NVFLAGS) $< -o $@
 
-$(KERNELTAR): %.o: %.cu
-	$(NVCC) -c $(NVFLAGS) $< -o $@
+# all: $(KERNELTAR)
 
-$(UTILTAR): %.o: %.cu
-	$(NVCC) -c $(NVFLAGS) $< -o $@
+# $(KERNELTAR):$(KERNELDIR):%.cu
+	# $(NVCC) -c $(NVFLAGS) $< -o $@
+
+$(KERNELDIR)/%.o: $(KERNELDIR)/%.cu
+   $(NVCC) -c $(NVFLAGS) -o $@ $<
+
+# $(UTILTAR): %.o: %.cu
+# 	$(NVCC) -c $(NVFLAGS) $< -o $@
 
 # ----------------------
 # Remove everything
 # ---------------------
 
-clean:
-	rm -f $(STRUCTTAR) $(UTILTAR) $(KERNELTAR) $(MAINOBJ) $(MAIN)
+# clean:
+# 	rm -f $(STRUCTTAR) $(UTILTAR) $(KERNELTAR) $(MAINOBJ) $(MAIN)
 
 

@@ -16,6 +16,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+
 // ---------------------------------------------------------------------
 //  Standard Libraries and Headers
 // ---------------------------------------------------------------------
@@ -28,48 +29,52 @@
 // ---------------------------------------------------------------------
 
 #include "../util/util.h"
-#include "../structs/cuSten_struct_type.h"
-#include "../DeviceFunctions.h"
+#include "../struct/cuSten_struct_type.h"
 
 // ---------------------------------------------------------------------
 //  Kernel Definition
 // ---------------------------------------------------------------------
 
-__global__ void kernel2DXpFun
+__global__ void kernel2DXp
 (
-	double* dataNew,  					// Answer data
 
-	double* dataOld,					// Input data
+	double* dataOutput,  					// Answer data
 
-	double* coe,						// User defined coefficients		
+	double* dataInput,					// Input data
 
-	double* func,						// The user input function
+	const double* d_weights,       		// Stencil weights
 
+	const int numSten,					// Stencil width
 	const int numStenLeft,				// Number of points to the left
 	const int numStenRight,				// Number of points to the right
-
-	const int numCoe,					// Number of user defined coefficients
 
 	const int nxLocal,					// Number of points in shared memory in x direction
 	const int nyLocal,					// Number of points in shared memory in y direction
 
 	const int BLOCK_X,					// Number of threads in block in y
 
-	const int nx						// Total number of points in x
+	const int nxDevice					// Number of points in x on the device
 )
 {	
+	// -----------------------------	
 	// Allocate the shared memory
-	extern __shared__ int memory[];
+	// -----------------------------
 
+	extern __shared__ int memory[];
+	
 	double* arrayLocal = (double*)&memory;
-	double* coeLocal = (double*)&arrayLocal[nxLocal * nyLocal];
+	double* weigthsLocal = (double*)&arrayLocal[nxLocal * nyLocal];
 
 	// Move the weigths into shared memory
 	#pragma unroll
-	for (int k = 0; k < numCoe; k++)
+	for (int k = 0; k < numSten; k++)
 	{
-		coeLocal[k] = coe[k];
+		weigthsLocal[k] = d_weights[k];
 	}
+
+	// -----------------------------
+	// Set the indexing
+	// -----------------------------
 
 	// True matrix index
     int globalIdx = blockDim.x * blockIdx.x + threadIdx.x;
@@ -79,82 +84,97 @@ __global__ void kernel2DXpFun
 	int localIdx = threadIdx.x + numStenLeft;
 	int localIdy = threadIdx.y;
 
+	// Local sum variable
+	double sum = 0.0;
+
 	// Set index for summing stencil
 	int stenSet;
 
-	// Set all interior blocks
-	if (blockIdx.x != 0 && blockIdx.x != nx / (BLOCK_X) - 1)
+	// -----------------------------
+	// Set interior
+	// -----------------------------
+
+	arrayLocal[localIdy * nxLocal + localIdx] = dataInput[globalIdy * nxDevice + globalIdx];
+
+	// -----------------------------
+	// Set x boundaries
+	// -----------------------------
+
+	// If block is in the interior
+	if (blockIdx.x != 0 && blockIdx.x != nxDevice / BLOCK_X - 1)
 	{
-		arrayLocal[localIdy * nxLocal + localIdx] = dataOld[globalIdy * nx + globalIdx];
 
 		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataOld[globalIdy * nx + (globalIdx - numStenLeft)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (globalIdx - numStenLeft)];
 		}
 
 		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataOld[globalIdy * nx + globalIdx + BLOCK_X];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + globalIdx + BLOCK_X];
 		}
-
-		__syncthreads();
-
-		stenSet = localIdy * nxLocal + localIdx;
-
-		dataNew[globalIdy * nx + globalIdx] = ((devArg1X)func)(arrayLocal, coeLocal, stenSet);
 	}
 
-	// Set all left boundary blocks
+	// If block is on the left boundary
 	if (blockIdx.x == 0)
 	{
-		arrayLocal[localIdy * nxLocal + localIdx] = dataOld[globalIdy * nx + globalIdx];
+		arrayLocal[localIdy * nxLocal + localIdx] = dataInput[globalIdy * nxDevice + globalIdx];
 
 		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataOld[globalIdy * nx + (nx - numStenLeft + threadIdx.x)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (nxDevice - numStenLeft + threadIdx.x)];
 		}
 
 		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataOld[globalIdy * nx + globalIdx + BLOCK_X];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + globalIdx + BLOCK_X];
 		}
-
-		__syncthreads();
-
-		stenSet = localIdy * nxLocal + localIdx;
-
-		dataNew[globalIdy * nx + globalIdx] = ((devArg1X)func)(arrayLocal, coeLocal, stenSet);
-
 	}
 
 	// Set the right boundary blocks
-	if (blockIdx.x == nx / BLOCK_X - 1)
+	if (blockIdx.x == nxDevice / BLOCK_X - 1)
 	{
-		arrayLocal[localIdy * nxLocal + threadIdx.x + numStenLeft] = dataOld[globalIdy * nx + globalIdx];
+		arrayLocal[localIdy * nxLocal + threadIdx.x + numStenLeft] = dataInput[globalIdy * nxDevice + globalIdx];
 
 		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataOld[globalIdy * nx + (globalIdx - numStenLeft)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (globalIdx - numStenLeft)];
 		}
 
 		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataOld[globalIdy * nx + threadIdx.x];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + threadIdx.x];
 		}
-
-		__syncthreads();
-
-		stenSet = localIdy * nxLocal + localIdx;
-
-		dataNew[globalIdy * nx + globalIdx] = ((devArg1X)func)(arrayLocal, coeLocal, stenSet);
 	}
+
+	// -----------------------------
+	// Compute the stencil
+	// -----------------------------
+
+	__syncthreads();
+
+	stenSet = localIdy * nxLocal + threadIdx.x;
+
+	#pragma unroll
+	for (int k = 0; k < numSten; k++)
+	{
+		sum += weigthsLocal[k] * arrayLocal[stenSet + k];
+	}
+
+	__syncthreads();
+
+	// -----------------------------
+	// Copy back to global
+	// -----------------------------
+
+	dataOutput[globalIdy * nxDevice + globalIdx] = sum;
 }
 
 // ---------------------------------------------------------------------
 // Function to compute kernel
 // ---------------------------------------------------------------------
 
-void custenCompute2DXpFun
+void custenCompute2DXp
 (
 	cuSten_t* pt_cuSten,
 
@@ -171,6 +191,13 @@ void custenCompute2DXpFun
 
 	dim3 blockDim(pt_cuSten->BLOCK_X, pt_cuSten->BLOCK_Y);
 	dim3 gridDim(pt_cuSten->xGrid, pt_cuSten->yGrid);
+
+	// Local memory grid sizes
+	int local_nx = pt_cuSten->BLOCK_X + pt_cuSten->numStenLeft + pt_cuSten->numStenRight;
+	int local_ny = pt_cuSten->BLOCK_Y;
+
+	// Load the weights
+	cudaMemPrefetchAsync(pt_cuSten->weights, pt_cuSten->numSten * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 	// Preload the first block
 	cudaStreamSynchronize(pt_cuSten->streams[1]);
@@ -190,20 +217,7 @@ void custenCompute2DXpFun
 		cudaEventSynchronize(pt_cuSten->events[1]);
 
 		// Preform the computation on the current tile
-		kernel2DXpFun<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(
-			pt_cuSten->dataOutput[tile], 
-			pt_cuSten->dataInput[tile], 
-			pt_cuSten->coe, 
-			pt_cuSten->devFunc, 
-			pt_cuSten->numStenLeft,
-			pt_cuSten->numStenRight, 
-			pt_cuSten->numCoe, 
-			pt_cuSten->nxLocal, 
-			pt_cuSten->nyLocal, 
-			pt_cuSten->BLOCK_X, 
-			pt_cuSten->nxDevice
-		);
-
+		kernel2DXp<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(pt_cuSten->dataOutput[tile], pt_cuSten->dataInput[tile], pt_cuSten->weights, pt_cuSten->numSten, pt_cuSten->numStenLeft, pt_cuSten->numStenRight, local_nx, local_ny, pt_cuSten->BLOCK_X, pt_cuSten->nxDevice);
 		cudaEventRecord(pt_cuSten->events[0], pt_cuSten->streams[0]);
 
 		// Offload should the user want to

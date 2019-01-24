@@ -28,21 +28,35 @@
 #include "omp.h"
 
 // ---------------------------------------------------------------------
-// Custom libraries and headers
+// cuSten - Note the file position is relative
 // ---------------------------------------------------------------------
 
-#include "cuSten/cuSten.h"
+#include "../../cuSten/cuSten.h"
+
+
 
 // ---------------------------------------------------------------------
 // MACROS
 // ---------------------------------------------------------------------
 
-#define BLOCK_X 32
-#define BLOCK_Y 32
+#define BLOCK_X 8
+#define BLOCK_Y 8
+
+
+// Data -- Coefficients -- Current node index
+typedef double (*devArg1X)(double*, double*, int);
 
 // ---------------------------------------------------------------------
 // Main Program
 // ---------------------------------------------------------------------
+
+
+__inline__ __device__ double square(double* data, double* coe, int loc)
+{	
+	return (data[loc - 1] - 2 * data[loc] + data[loc + 1]) * coe[0];	
+}
+
+__device__ devArg1X devfunc = square;
 
 int main()
 {	
@@ -50,8 +64,8 @@ int main()
 	int deviceNum = 0;
 
 	// Declare Domain Size
-	int nx = 2048;
-	int ny = 1024;
+	int nx = 128;
+	int ny = 64;
 
 	double lx = 2 * M_PI;
 
@@ -59,7 +73,7 @@ int main()
 	double dx = lx / (double) (nx);
 
 	// Set the number of tiles per device
-	int numTiles = 2;
+	int numTiles = 1;
 
 	// Initial Conditions
 	double* dataOld;
@@ -84,7 +98,7 @@ int main()
 		{
 			dataOld[j * nx + i] = sin(i * dx);
 			dataNew[j * nx + i] = 0.0;
-			answer[j * nx + i] = - sin(i * dx);
+			answer[j * nx + i] =- sin(i * dx);
 		}
 	}
 
@@ -96,22 +110,16 @@ int main()
 	// Set the stencil to compute
 	// -----------------------------
 
-	int numSten = 9;
-	int numStenLeft = 4;
-	int numStenRight = 4;
+	int numSten = 3;
+	int numStenLeft = 1;
+	int numStenRight = 1;
 
-	double* weights;
-	cudaMallocManaged(&weights, numSten * sizeof(double));
+	int numCoe = 1;
 
-	weights[0] = - (1.0 / 560.0) * 1.0 / pow(dx, 2.0);
-	weights[1] = (8.0 / 315.0) * 1.0 / pow(dx, 2.0);
-	weights[2] = - (1.0 / 5.0) * 1.0 / pow(dx, 2.0);
-	weights[3] = (8.0 / 5.0) * 1.0 / pow(dx, 2.0);
-	weights[4] = - (205.0 / 72.0) * 1.0 / pow(dx, 2.0);
-	weights[5] = (8.0 / 5.0) * 1.0 / pow(dx, 2.0);
-	weights[6] = - (1.0 / 5.0) * 1.0 / pow(dx, 2.0);
-	weights[7] = (8.0 / 315.0) * 1.0 / pow(dx, 2.0);
-	weights[8] = - (1.0 / 560.0) * 1.0 / pow(dx, 2.0);
+	double* coe;
+	cudaMallocManaged(&coe, numCoe * sizeof(double));
+
+	coe[0] = 1.0 / pow(dx, 2.0);
 
 	// -----------------------------
 	// Set up device
@@ -124,8 +132,11 @@ int main()
 	// Set up the compute device structs
 	cuSten_t xDirCompute;
 
+	double* func;
+	cudaMemcpyFromSymbol(&func, devfunc, sizeof(devArg1X));
+
 	// Initialise the instance of the stencil
-	custenCreate2DXp(&xDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenLeft, numStenRight);
+	custenCreate2DXnpFun(&xDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, coe, numSten, numStenLeft, numStenRight, numCoe, func);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();
@@ -133,9 +144,9 @@ int main()
 	// -----------------------------
 	// Compute
 	// -----------------------------
-
+	
 	// Run the computation
-	custenCompute2DXp(&xDirCompute, 0);
+	custenCompute2DXnpFun(&xDirCompute, 0);
 
 	// Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
@@ -153,14 +164,14 @@ int main()
 	// -----------------------------
 
 	// Destroy struct
-	custenDestroy2DXp(&xDirCompute);
+	custenDestroy2DXnpFun(&xDirCompute);
 
 	// Free memory at the end
 	cudaFree(dataOld);
 	cudaFree(dataNew);
 	cudaFree(answer);
-	cudaFree(weights);
-
+	cudaFree(coe);
+	
 	// Return 0 when the program completes
 	return 0;
 }

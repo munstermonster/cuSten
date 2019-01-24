@@ -28,10 +28,9 @@
 // Include headers from cuSten library
 // ---------------------------------------------------------------------
 
-#include "structs/cuSten_struct_type.h"
-#include "structs/cuSten_struct_functions.h"
-#include "kernels/stencil_kernels.h"
-#include "util/util.h"
-#include "DeviceFunctions.h"
+#include "src/struct/cuSten_struct_type.h"
+#include "src/struct/cuSten_struct_functions.h"
+#include "src/kernels/stencil_kernels.h"
+#include "src/util/util.h"
 
 #endif

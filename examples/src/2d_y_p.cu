@@ -1,6 +1,6 @@
 // Andrew Gloster
 // May 2018
-// Example of x direction non periodic 2D code
+// Example of y direction periodic 2D code
 
 //   Copyright 2018 Andrew Gloster
 
@@ -25,33 +25,24 @@
 #include <iostream>
 #include <cstdio>
 #include "cuda.h"
-#include "omp.h"
 
 // ---------------------------------------------------------------------
-// Custom libraries and headers
+// cuSten - Note the file position is relative
 // ---------------------------------------------------------------------
 
-#include "cuSten/cuSten.h"
+#include "../../cuSten/cuSten.h"
 
 // ---------------------------------------------------------------------
 // MACROS
 // ---------------------------------------------------------------------
 
-#define BLOCK_X 8
-#define BLOCK_Y 8
+#define BLOCK_X 16
+#define BLOCK_Y 16
 
 
 // ---------------------------------------------------------------------
 // Main Program
 // ---------------------------------------------------------------------
-
-
-__inline__ __device__ double square(double* data, double* coe, int loc)
-{	
-	return (data[loc - 1] - 2 * data[loc] + data[loc + 1]) * coe[0];	
-}
-
-__device__ devArg1X devfunc = square;
 
 int main()
 {	
@@ -59,16 +50,16 @@ int main()
 	int deviceNum = 0;
 
 	// Declare Domain Size
-	int nx = 128;
-	int ny = 64;
+	int nx = 512;
+	int ny = 512;
 
-	double lx = 2 * M_PI;
+	double ly = 2 * M_PI;
 
 	// Domain spacings
-	double dx = lx / (double) (nx);
+	double dy = ly / (double) (nx);
 
 	// Set the number of tiles per device
-	int numTiles = 1;
+	int numTiles = 4;
 
 	// Initial Conditions
 	double* dataOld;
@@ -91,9 +82,9 @@ int main()
 	{
 		for (int i = 0; i < nx; i++)
 		{
-			dataOld[j * nx + i] = sin(i * dx);
+			dataOld[j * nx + i] = sin(j * dy);
 			dataNew[j * nx + i] = 0.0;
-			answer[j * nx + i] =- sin(i * dx);
+			answer[j * nx + i] =- sin(j * dy);
 		}
 	}
 
@@ -106,15 +97,15 @@ int main()
 	// -----------------------------
 
 	int numSten = 3;
-	int numStenLeft = 1;
-	int numStenRight = 1;
+	int numStenTop = 1;
+	int numStenBottom = 1;
 
-	int numCoe = 1;
+	double* weights;
+	cudaMallocManaged(&weights, numSten * sizeof(double));
 
-	double* coe;
-	cudaMallocManaged(&coe, numCoe * sizeof(double));
-
-	coe[0] = 1.0 / pow(dx, 2.0);
+	weights[0] = 1.0 / pow(dy, 2.0);
+	weights[1] = - 2.0 / pow(dy, 2.0);
+	weights[2] = 1.0 / pow(dy, 2.0);
 
 	// -----------------------------
 	// Set up device
@@ -125,13 +116,10 @@ int main()
 	int nyDevice = ny;
 
 	// Set up the compute device structs
-	cuSten_t xDirCompute;
-
-	double* func;
-	cudaMemcpyFromSymbol(&func, devfunc, sizeof(devArg1X));
+	cuSten_t yDirCompute;
 
 	// Initialise the instance of the stencil
-	custenCreate2DXnpFun(&xDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, coe, numSten, numStenLeft, numStenRight, numCoe, func);
+	custenCreate2DYp(&yDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenTop, numStenBottom);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();
@@ -139,18 +127,18 @@ int main()
 	// -----------------------------
 	// Compute
 	// -----------------------------
-	
-	// Run the computation
-	custenCompute2DXnpFun(&xDirCompute, 0);
 
-	// Synchronise at the end to ensure everything is complete
+	// Run the computation
+	custenCompute2DYp(&yDirCompute, 0);
+
+	// // Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
 
-	for (int j = 0; j < ny; j++)
+	for (int j = 0; j < 256; j++)
 	{
 		for (int i = 0; i < nx; i++)
 		{
-			printf("%lf %lf %d \n", dataNew[j * nx + i], answer[j * nx + i], i);
+			printf("%lf %lf %d %d \n", dataNew[j * nx + i], answer[j * nx + i], i, j);
 		}
 	}
 
@@ -159,13 +147,13 @@ int main()
 	// -----------------------------
 
 	// Destroy struct
-	custenDestroy2DXnpFun(&xDirCompute);
+	custenDestroy2DYp(&yDirCompute);
 
 	// Free memory at the end
 	cudaFree(dataOld);
 	cudaFree(dataNew);
 	cudaFree(answer);
-	cudaFree(coe);
+	cudaFree(weights);
 	
 	// Return 0 when the program completes
 	return 0;

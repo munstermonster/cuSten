@@ -29,13 +29,20 @@
 // ---------------------------------------------------------------------
 
 #include "../util/util.h"
-#include "../structs/cuSten_struct_type.h"
+#include "../struct/cuSten_struct_type.h"
+
+// ---------------------------------------------------------------------
+// Function pointer definition
+// ---------------------------------------------------------------------
+
+// Data -- Coefficients -- Current node index -- Jump -- Points in x -- Points in y
+typedef double (*devArg1XY)(double*, double*, int, int, int, int);
 
 // ---------------------------------------------------------------------
 //  Kernel Definition
 // ---------------------------------------------------------------------
 
-__global__ void kernel2DXYp
+__global__ void kernel2DXYpFun
 (
 	double* dataOutput,  				// Answer data
 
@@ -44,7 +51,9 @@ __global__ void kernel2DXYp
 	double* boundaryTop, 				// Data for the top boundary
 	double* boundaryBottom,				// Data for the bottom boundary
 
-	const double* weights,       		// Stencil weights
+	const double* coe,       			// Stencil coefficients for use in function
+
+	double* func,						// User defined function
 
 	const int numSten,					// Stencil total size 
 
@@ -73,13 +82,13 @@ __global__ void kernel2DXYp
 	extern __shared__ int memory[];
 
 	double* arrayLocal = (double*)&memory;
-	double* weigthsLocal = (double*)&arrayLocal[nxLocal * nyLocal];
+	double* coeLocal = (double*)&arrayLocal[nxLocal * nyLocal];
 
 	// Move the weigths into shared memory
 	#pragma unroll
 	for (int k = 0; k < numSten; k++)
 	{
-		weigthsLocal[k] = weights[k];
+		coeLocal[k] = coe[k];
 	}
 
 	// -----------------------------
@@ -99,12 +108,6 @@ __global__ void kernel2DXYp
 
 	// Set index for summing stencil
 	int stenSet;
-
-	// Set temporary index for looping
-	int temp;
-
-	// Use to loop over indexing in the weighsLocal
-	int weight = 0;
 
 	// -----------------------------
 	// Set interior
@@ -480,7 +483,7 @@ __global__ void kernel2DXYp
 				arrayLocal[(localIdy + BLOCK_Y) * nxLocal + (localIdx + BLOCK_X)] =  boundaryBottom[threadIdx.y * nxDevice + threadIdx.x];
 			}
 		}
-	}	
+	}
 
 	// -----------------------------
 	// Compute the stencil
@@ -489,26 +492,19 @@ __global__ void kernel2DXYp
 	__syncthreads();
 
 	stenSet = (localIdy - numStenTop) * nxLocal + (localIdx - numStenLeft);
-	weight = 0;
 
-	for (int j = 0; j < numStenVert; j++) // Allow for the point we're actually at
-	{
-		temp = j * nxLocal;
+	__syncthreads();
 
-		for (int i = 0; i < numStenHoriz; i++) // Allow for the point we're actually at
-		{
-			sum += weigthsLocal[weight] * arrayLocal[stenSet + temp + i];
 
-			weight++;
-		} 
-	}
-
+	sum = ((devArg1XY)func)(arrayLocal, coeLocal, stenSet, nxLocal, numStenHoriz, numStenVert);
+	
 	__syncthreads();
 
 	// -----------------------------
 	// Copy back to global
 	// -----------------------------
 
+	// printf("%lf \n", sum);
 	dataOutput[globalIdy * nxDevice + globalIdx] = sum;
 
 }
@@ -517,7 +513,7 @@ __global__ void kernel2DXYp
 // Function to compute kernel
 // ---------------------------------------------------------------------
 
-void custenCompute2DXYp
+void custenCompute2DXYpFun
 (
 	cuSten_t* pt_cuSten,
 
@@ -536,7 +532,7 @@ void custenCompute2DXYp
 	dim3 gridDim(pt_cuSten->xGrid, pt_cuSten->yGrid);
 
 	// Load the weights
-	cudaMemPrefetchAsync(pt_cuSten->weights, pt_cuSten->numSten * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->coe, pt_cuSten->numSten * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 	// Ensure the current stream is free
 	cudaStreamSynchronize(pt_cuSten->streams[1]);
@@ -564,15 +560,17 @@ void custenCompute2DXYp
 		cudaEventSynchronize(pt_cuSten->events[1]);
 
 		// Preform the computation on the current tile
-		kernel2DXYp<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(
-			pt_cuSten->dataOutput[tile], 
-
+		kernel2DXYpFun<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(
+			pt_cuSten->dataOutput[tile],
+		
 			pt_cuSten->dataInput[tile], 
 
 			pt_cuSten->boundaryTop[tile], 
 			pt_cuSten->boundaryBottom[tile], 
 
-			pt_cuSten->weights, 
+			pt_cuSten->coe,
+
+			pt_cuSten->devFunc, 
 
 			pt_cuSten->numSten,
 

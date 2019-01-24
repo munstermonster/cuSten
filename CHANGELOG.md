@@ -18,7 +18,8 @@ CHANGELOG
 cuSten 1.3
 ---------
 
-* Added 2D Advection with WENO - Also changed around the prefetching for this code, this needs to be done with the rest of them.
+* Restructured into static library with its own Makefile and moved examples into separate directory with their own Makefile that calls library.
+* Updated readme.
 
 cuSten 1.2.1
 ---------
