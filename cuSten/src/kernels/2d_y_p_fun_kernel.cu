@@ -113,7 +113,6 @@ __global__ void kernel2DYpFun
 
 		__syncthreads();
 
-
 		stenSet = localIdy * nxLocal + localIdx;
 
 		sum = ((devArg1Y)func)(arrayLocal, coeLocal, stenSet, nxLocal);

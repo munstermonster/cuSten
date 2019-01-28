@@ -47,9 +47,9 @@ __global__ void kernel2DXpFun
 
 	double* dataOld,					// Input data
 
-	double* coe,						// User defined coefficients		
+	const double* coe,						// User defined coefficients		
 
-	double* func,						// The user input function
+	const double* func,						// The user input function
 
 	const int numStenLeft,				// Number of points to the left
 	const int numStenRight,				// Number of points to the right
@@ -102,12 +102,6 @@ __global__ void kernel2DXpFun
 		{
 			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataOld[globalIdy * nx + globalIdx + BLOCK_X];
 		}
-
-		__syncthreads();
-
-		stenSet = localIdy * nxLocal + localIdx;
-
-		dataNew[globalIdy * nx + globalIdx] = ((devArg1X)func)(arrayLocal, coeLocal, stenSet);
 	}
 
 	// Set all left boundary blocks
@@ -124,13 +118,6 @@ __global__ void kernel2DXpFun
 		{
 			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataOld[globalIdy * nx + globalIdx + BLOCK_X];
 		}
-
-		__syncthreads();
-
-		stenSet = localIdy * nxLocal + localIdx;
-
-		dataNew[globalIdy * nx + globalIdx] = ((devArg1X)func)(arrayLocal, coeLocal, stenSet);
-
 	}
 
 	// Set the right boundary blocks
@@ -147,13 +134,13 @@ __global__ void kernel2DXpFun
 		{
 			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataOld[globalIdy * nx + threadIdx.x];
 		}
-
-		__syncthreads();
-
-		stenSet = localIdy * nxLocal + localIdx;
-
-		dataNew[globalIdy * nx + globalIdx] = ((devArg1X)func)(arrayLocal, coeLocal, stenSet);
 	}
+
+	__syncthreads();
+
+	stenSet = localIdy * nxLocal + localIdx;
+
+	dataNew[globalIdy * nx + globalIdx] = ((devArg1X)func)(arrayLocal, coeLocal, stenSet);
 }
 
 // ---------------------------------------------------------------------

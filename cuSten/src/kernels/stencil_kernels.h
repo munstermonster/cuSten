@@ -119,6 +119,17 @@ void custenCompute2DYnp
 );
 
 // ----------------------------------------
+// 2D y direction non periodic user function
+// ----------------------------------------
+
+void custenCompute2DYnpFun
+(
+	cuSten_t* pt_cuSten,
+
+	bool offload
+);
+
+// ----------------------------------------
 // 2D xy direction periodic
 // ----------------------------------------
 

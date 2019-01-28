@@ -6,6 +6,7 @@ CHANGELOG
 
 | Contents               |
 | :--------------------- |
+| [cuSten 1.3](#cuSten-14) |
 | [cuSten 1.3](#cuSten-13) |
 | [cuSten 1.2.1](#cuSten-121) |
 | [cuSten 1.2](#cuSten-12) |
@@ -14,6 +15,13 @@ CHANGELOG
 
 
 </details>
+
+cuSten 1.4
+---------
+
+* Add 2D_y_np_fun
+* Fixed some bugs in other code
+* Fixed makefile for examples
 
 cuSten 1.3
 ---------

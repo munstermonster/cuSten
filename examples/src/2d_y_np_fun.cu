@@ -1,6 +1,6 @@
 // Andrew Gloster
-// May 2018
-// Example of y direction periodic 2D code
+// January 2018
+// Examples - 2D y direction - non periodic - user function
 
 //   Copyright 2018 Andrew Gloster
 
@@ -39,6 +39,31 @@
 #define BLOCK_X 8
 #define BLOCK_Y 8
 
+// ---------------------------------------------------------------------
+// Function pointer definition
+// ---------------------------------------------------------------------
+
+// Data -- Coefficients -- Current node index -- Jump
+typedef double (*devArg1Y)(double*, double*, int, int);
+
+// ---------------------------------------------------------------------
+// Function Declaration
+// ---------------------------------------------------------------------
+
+__inline__ __device__ double centralDiff(double* data, double* coe, int loc, int jump)
+{	
+	double result = 0.0;
+
+	#pragma unroll
+	for (int i = 0; i < 9; i++)
+	{
+		result += coe[i] * data[(loc - 4 * jump) + i * jump];
+	}
+
+	return result;
+}
+
+__device__ devArg1Y devFunc = centralDiff;
 
 // ---------------------------------------------------------------------
 // Main Program
@@ -56,10 +81,10 @@ int main()
 	double ly = 2 * M_PI;
 
 	// Domain spacings
-	double dy = ly / (double) (nx);
+	double dy = ly / (double) (ny);
 
 	// Set the number of tiles per device
-	int numTiles = 1;
+	int numTiles = 2;
 
 	// Initial Conditions
 	double* dataOld;
@@ -84,7 +109,7 @@ int main()
 		{
 			dataOld[j * nx + i] = sin(j * dy);
 			dataNew[j * nx + i] = 0.0;
-			answer[j * nx + i] =- sin(j * dy);
+			answer[j * nx + i] = - sin(j * dy);
 		}
 	}
 
@@ -96,16 +121,24 @@ int main()
 	// Set the stencil to compute
 	// -----------------------------
 
-	int numSten = 3;
-	int numStenTop = 1;
-	int numStenBottom = 1;
+	int numSten = 9;
+	int numStenTop = 4;
+	int numStenBottom = 4;
 
-	double* weights;
-	cudaMallocManaged(&weights, numSten * sizeof(double));
+	int numCoe = 9;
 
-	weights[0] = 1.0 / pow(dy, 2.0);
-	weights[1] = - 2.0 / pow(dy, 2.0);
-	weights[2] = 1.0 / pow(dy, 2.0);
+	double* coe;
+	cudaMallocManaged(&coe, numCoe * sizeof(double));
+
+	coe[0] = - (1.0 / 560.0) * 1.0 / pow(dy, 2.0);
+	coe[1] = (8.0 / 315.0) * 1.0 / pow(dy, 2.0);
+	coe[2] = - (1.0 / 5.0) * 1.0 / pow(dy, 2.0);
+	coe[3] = (8.0 / 5.0) * 1.0 / pow(dy, 2.0);
+	coe[4] = - (205.0 / 72.0) * 1.0 / pow(dy, 2.0);
+	coe[5] = (8.0 / 5.0) * 1.0 / pow(dy, 2.0);
+	coe[6] = - (1.0 / 5.0) * 1.0 / pow(dy, 2.0);
+	coe[7] = (8.0 / 315.0) * 1.0 / pow(dy, 2.0);
+	coe[8] = - (1.0 / 560.0) * 1.0 / pow(dy, 2.0);
 
 	// -----------------------------
 	// Set up device
@@ -118,8 +151,11 @@ int main()
 	// Set up the compute device structs
 	cuSten_t yDirCompute;
 
+	double* func;
+	cudaMemcpyFromSymbol(&func, devFunc, sizeof(devArg1Y));
+
 	// Initialise the instance of the stencil
-	custenCreate2DYp(&yDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenTop, numStenBottom);
+	custenCreate2DYnpFun(&yDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, coe, numSten, numStenTop, numStenBottom, func);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();
@@ -129,16 +165,16 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DYp(&yDirCompute, 0);
+	custenCompute2DYnpFun(&yDirCompute, 0);
 
-	// // Synchronise at the end to ensure everything is complete
+	// Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
 
-	for (int j = 0; j < 256; j++)
+	for (int j = 0; j < ny; j++)
 	{
 		for (int i = 0; i < nx; i++)
 		{
-			printf("%lf %lf %d %d \n", dataNew[j * nx + i], answer[j * nx + i], i, j);
+			printf("%lf %lf %lf %d %d \n", dataOld[j * nx + i], dataNew[j * nx + i], answer[j * nx + i], i, j);
 		}
 	}
 
@@ -147,13 +183,13 @@ int main()
 	// -----------------------------
 
 	// Destroy struct
-	custenDestroy2DYp(&yDirCompute);
+	// custenDestroy2DYpFun(&yDirCompute);
 
 	// Free memory at the end
 	cudaFree(dataOld);
 	cudaFree(dataNew);
 	cudaFree(answer);
-	cudaFree(weights);
+	cudaFree(coe);
 	
 	// Return 0 when the program completes
 	return 0;

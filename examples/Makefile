@@ -35,12 +35,12 @@ EXEXE := $(patsubst $(EXDIR)/%.cu,$(BIN)/%,$(EXFILE))
 # Possible functions
 # ---------------------
 
-all: $(EXEXE)
+all: $(EXEXE) 
 
-$(EXEXE): $(EXOBJ)
+$(EXEXE):$(BIN)/%:$(OBJBIN)/%.o
 	$(NVCC) $(NVFLAGFIN) -o $@ $<
 
-$(EXOBJ): $(EXFILE)
+$(OBJBIN)/%.o: $(EXDIR)/%.cu
 	$(NVCC) $(NVFLAGS) -o $@ $<
 
 # ----------------------

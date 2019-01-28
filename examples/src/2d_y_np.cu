@@ -36,8 +36,8 @@
 // MACROS
 // ---------------------------------------------------------------------
 
-#define BLOCK_X 32
-#define BLOCK_Y 32
+#define BLOCK_X 8
+#define BLOCK_Y 8
 
 // ---------------------------------------------------------------------
 // Main Program
@@ -58,7 +58,7 @@ int main()
 	double dy = ly / (double) (ny);
 
 	// Set the number of tiles per device
-	int numTiles = 4;
+	int numTiles = 2;
 
 	// Initial Conditions
 	double* dataOld;

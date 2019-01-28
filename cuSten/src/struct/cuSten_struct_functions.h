@@ -284,6 +284,39 @@ void custenDestroy2DYnp(
 );
 
 // ----------------------------------------
+// 2D y direction with non periodic user function
+// ----------------------------------------
+
+void custenCreate2DYnpFun(
+	cuSten_t* pt_cuSten,		// Pointer to the compute struct type
+
+	int deviceNum,				// Device on which to compute this stencil
+
+	int numTiles,				// Number of tiles to divide the data on the device into
+
+	int nxDevice,				// Number of points in x on the device
+	int nyDevice,				// Number of points in y on the device
+
+	int BLOCK_X,				// Number of threads to use in x
+	int BLOCK_Y,				// Number of threads to use in y
+
+	double* dataNew,			// Output data
+	double* dataOld,			// Input data
+	double* coe,				// Arracy containing the weights
+
+	int numSten,				// Number of points in a stencil
+	int numStenTop,				// Number of points in the top of the stencil
+	int numStenBottom,			// Number of points in the bottom of the stencil
+
+	double* func 				// User defined function
+);
+
+// Function to destroy the struct for a 2D y direction non periodic user function
+void custenDestroy2DYnpFun(
+	cuSten_t* pt_cuSten
+);
+
+// ----------------------------------------
 // 2D xy direction periodic
 // ----------------------------------------
 
