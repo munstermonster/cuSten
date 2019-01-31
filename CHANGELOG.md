@@ -6,7 +6,8 @@ CHANGELOG
 
 | Contents               |
 | :--------------------- |
-| [cuSten 1.3](#cuSten-14) |
+| [cuSten 1.5](#cuSten-15) |
+| [cuSten 1.4](#cuSten-14) |
 | [cuSten 1.3](#cuSten-13) |
 | [cuSten 1.2.1](#cuSten-121) |
 | [cuSten 1.2](#cuSten-12) |
@@ -15,6 +16,12 @@ CHANGELOG
 
 
 </details>
+
+cuSten 1.5
+---------
+
+* Add 2D_xy_np and 2D_xy_np_fun
+* 2D cases are now completed, next release will have formalised documentation and improved code commenting.
 
 cuSten 1.4
 ---------
@@ -49,9 +56,3 @@ cuSten 1.0
 ---------
 
 * Initial release of cuSten.
-
-Known issues:
-- User manual/documentation
-- Commenting
-- Incomplete 2D
-- No 3D

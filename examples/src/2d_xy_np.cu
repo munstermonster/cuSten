@@ -1,8 +1,8 @@
 // Andrew Gloster
-// May 2018
-// Example of xy direction periodic 2D code with user function
+// January 2019
+// Example of xy direction non periodic 2D code
 
-//   Copyright 2018 Andrew Gloster
+//   Copyright 2019 Andrew Gloster
 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -36,39 +36,8 @@
 // MACROS
 // ---------------------------------------------------------------------
 
-#define BLOCK_X 16
-#define BLOCK_Y 32
-
-// Data -- Coefficients -- Current node index -- Jump -- Points in x -- Points in y
-typedef double (*devArg1XY)(double*, double*, int, int, int, int);
-
-// ---------------------------------------------------------------------
-// Function Declaration
-// ---------------------------------------------------------------------
-
-__inline__ __device__ double centralDiff(double* data, double* coe, int loc, int jump, int nx, int ny)
-{	
-	double result = 0.0;
-	int temp;
-	int count = 0;
-
-	#pragma unroll
-	for (int j = 0; j < ny; j++)
-	{
-		temp = loc + j * jump;
-
-		for (int i = 0; i < nx; i++)
-		{
-			result += coe[count] * data[temp + i];
-
-			count ++;
-		}
-	}
-
-	return result;
-}
-
-__device__ devArg1XY devFunc = centralDiff;
+#define BLOCK_X 4
+#define BLOCK_Y 4
 
 // ---------------------------------------------------------------------
 // Main Program
@@ -80,8 +49,8 @@ int main()
 	int deviceNum = 0;
 
 	// Declare Domain Size
-	int nx = 8192;
-	int ny = 8192;
+	int nx = 128;
+	int ny = 128;
 
 	double lx = 2 * M_PI;
 	double ly = 2 * M_PI;
@@ -91,7 +60,7 @@ int main()
 	double dy = ly / (double) (ny);
 
 	// Set the number of tiles per device
-	int numTiles = 1;
+	int numTiles = 4;
 
 	// Initial Conditions
 	double* dataInput;
@@ -110,20 +79,13 @@ int main()
 	// Set the initial conditions
 	// -----------------------------
 
-	// Loop indexes
-	int temp;
-	int index;
-
 	for (int j = 0; j < ny; j++)
 	{
-		temp = j * nx;
 		for (int i = 0; i < nx; i++)
 		{
-			index = temp + i;
-
-			dataInput[index] = sin(i * dx) * cos(j * dy);
-			dataOutput[index] = 0.0;
-			answer[index] = - cos(i * dx) * sin(j * dy);
+			dataInput[j * nx + i] = sin(i * dx) * cos(j * dy);
+			dataOutput[j * nx + i] = 0.0;
+			answer[j * nx + i] = - cos(i * dx) * sin(j * dy);
 		}
 	}
 
@@ -142,41 +104,34 @@ int main()
 	int numStenTop = 1;
 	int numStenBottom = 1;
 
-	double* coe;
-	cudaMallocManaged(&coe, numStenHoriz * numStenVert * sizeof(double));
+	double* weights;
+	cudaMallocManaged(&weights, numStenHoriz * numStenVert * sizeof(double));
 
 	double sigma = 1.0 / (4.0 * dx * dy);
 
-	coe[0] = 1.0 * sigma;
-	coe[1] = 0.0 * sigma;
-	coe[2] = - 1.0 * sigma;
-	coe[3] = 0.0 * sigma;
-	coe[4] = 0.0 * sigma;
-	coe[5] = 0.0 * sigma;
-	coe[6] = - 1.0 * sigma;
-	coe[7] = 0.0 * sigma;
-	coe[8] = 1.0 * sigma;
+	weights[0] = 1.0 * sigma;
+	weights[1] = 0.0 * sigma;
+	weights[2] = - 1.0 * sigma;
+	weights[3] = 0.0 * sigma;
+	weights[4] = 0.0 * sigma;
+	weights[5] = 0.0 * sigma;
+	weights[6] = - 1.0 * sigma;
+	weights[7] = 0.0 * sigma;
+	weights[8] = 1.0 * sigma;
 
 	// -----------------------------
 	// Set up device
 	// -----------------------------
 
-	// Number of points per device
+	// Number of points per device, subdividing in y
 	int nxDevice = nx;
 	int nyDevice = ny;
 
 	// Set up the compute device structs
 	cuSten_t xyDirCompute;
 
-	// Copy the function to device memory
-	double* func;
-	cudaMemcpyFromSymbol(&func, devFunc, sizeof(devArg1XY));
-
-	// Synchronise to ensure everything initialised
-	cudaDeviceSynchronize();
-
 	// Initialise the instance of the stencil
-	custenCreate2DXYpFun(
+	custenCreate2DXYnp(
 		&xyDirCompute,
 
 		deviceNum,
@@ -191,7 +146,7 @@ int main()
 
 		dataOutput,
 		dataInput,
-		coe,
+		weights,
 
 		numStenHoriz,
 		numStenLeft,
@@ -199,9 +154,7 @@ int main()
 
 		numStenVert,
 		numStenTop,
-		numStenBottom,
-
-		func
+		numStenBottom
 	);
 
 	// Synchronise to ensure everything initialised
@@ -212,10 +165,16 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DXYpFun(&xyDirCompute, 0);
+	custenCompute2DXYnp(&xyDirCompute, 0);
 
 	// // Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
+
+	// -----------------------------
+	// Destroy struct and free memory
+	// -----------------------------
+
+	int temp, index;
 
 	for (int j = 0; j < ny; j++)
 	{
@@ -228,18 +187,14 @@ int main()
 		}
 	}
 
-	// -----------------------------
-	// // Destroy struct and free memory
-	// // -----------------------------
-
 	// Destroy struct
-	custenDestroy2DXYpFun(&xyDirCompute);
+	custenDestroy2DXYnp(&xyDirCompute);
 
 	// Free memory at the end
 	cudaFree(dataInput);
 	cudaFree(dataOutput);
 	cudaFree(answer);
-	cudaFree(coe);
+	cudaFree(weights);
 	
 	// Return 0 when the program completes
 	return 0;

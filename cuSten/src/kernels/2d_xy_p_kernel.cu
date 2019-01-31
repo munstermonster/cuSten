@@ -1,6 +1,6 @@
 // Andrew Gloster
 // May 2018
-// Kernel to apply a y direction stencil on a 2D grid - periodic
+// Kernel to apply a xy direction stencil on a 2D grid - periodic
 
 //   Copyright 2018 Andrew Gloster
 

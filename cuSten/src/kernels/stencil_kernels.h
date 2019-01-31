@@ -152,6 +152,28 @@ void custenCompute2DXYpFun
 );
 
 // ----------------------------------------
+// 2D xy direction non periodic
+// ----------------------------------------
+
+void custenCompute2DXYnp
+(
+	cuSten_t* pt_cuSten,
+
+	bool offload
+);
+
+// ----------------------------------------
+// 2D xy direction non periodic user function
+// ----------------------------------------
+
+void custenCompute2DXYnpFun 
+(
+	cuSten_t* pt_cuSten,
+
+	bool offload
+);
+
+// ----------------------------------------
 // 2D xy WENO periodic user function
 // ----------------------------------------
 

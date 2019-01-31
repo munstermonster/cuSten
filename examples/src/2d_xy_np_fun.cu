@@ -1,8 +1,8 @@
 // Andrew Gloster
-// May 2018
-// Example of xy direction periodic 2D code with user function
+// January 2019
+// Example of xy direction non periodic 2D code with user function
 
-//   Copyright 2018 Andrew Gloster
+//   Copyright 2019 Andrew Gloster
 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@
 // MACROS
 // ---------------------------------------------------------------------
 
-#define BLOCK_X 16
-#define BLOCK_Y 32
+#define BLOCK_X 8
+#define BLOCK_Y 8
 
 // Data -- Coefficients -- Current node index -- Jump -- Points in x -- Points in y
 typedef double (*devArg1XY)(double*, double*, int, int, int, int);
@@ -80,8 +80,8 @@ int main()
 	int deviceNum = 0;
 
 	// Declare Domain Size
-	int nx = 8192;
-	int ny = 8192;
+	int nx = 128;
+	int ny = 128;
 
 	double lx = 2 * M_PI;
 	double ly = 2 * M_PI;
@@ -176,7 +176,7 @@ int main()
 	cudaDeviceSynchronize();
 
 	// Initialise the instance of the stencil
-	custenCreate2DXYpFun(
+	custenCreate2DXYnpFun(
 		&xyDirCompute,
 
 		deviceNum,
@@ -212,7 +212,7 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DXYpFun(&xyDirCompute, 0);
+	custenCompute2DXYnpFun(&xyDirCompute, 0);
 
 	// // Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
@@ -233,7 +233,7 @@ int main()
 	// // -----------------------------
 
 	// Destroy struct
-	custenDestroy2DXYpFun(&xyDirCompute);
+	custenDestroy2DXYnpFun(&xyDirCompute);
 
 	// Free memory at the end
 	cudaFree(dataInput);
