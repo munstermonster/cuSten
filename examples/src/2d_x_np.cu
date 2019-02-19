@@ -117,15 +117,11 @@ int main()
 	// Set up device
 	// -----------------------------
 
-	// Number of points per device, subdividing in y
-	int nxDevice = nx;
-	int nyDevice = ny;
-
 	// Set up the compute device structs
 	cuSten_t xDirCompute;
 
 	// Initialise the instance of the stencil
-	custenCreate2DXnp(&xDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenLeft, numStenRight);
+	custenCreate2DXnp(&xDirCompute, deviceNum, numTiles, nx, ny, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenLeft, numStenRight);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();
@@ -135,7 +131,7 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DXnp(&xDirCompute, 0);
+	custenCompute2DXnp(&xDirCompute, 1);
 
 	// Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();

@@ -36,8 +36,8 @@
 // MACROS
 // ---------------------------------------------------------------------
 
-#define BLOCK_X 4
-#define BLOCK_Y 4
+#define BLOCK_X 32
+#define BLOCK_Y 32
 
 // ---------------------------------------------------------------------
 // Main Program
@@ -49,8 +49,8 @@ int main()
 	int deviceNum = 0;
 
 	// Declare Domain Size
-	int nx = 64;
-	int ny = 64;
+	int nx = 8192;
+	int ny = 8192;
 
 	double lx = 2 * M_PI;
 	double ly = 2 * M_PI;
@@ -60,7 +60,7 @@ int main()
 	double dy = ly / (double) (ny);
 
 	// Set the number of tiles per device
-	int numTiles = 1;
+	int numTiles = 4;
 
 	// Initial Conditions
 	double* dataInput;
@@ -109,10 +109,6 @@ int main()
 	// Set up device
 	// -----------------------------
 
-	// Number of points per device, subdividing in y
-	int nxDevice = nx;
-	int nyDevice = ny;
-
 	// Set up the compute device structs
 	cuSten_t xyWENOCompute;
 
@@ -124,8 +120,8 @@ int main()
 
 		numTiles,
 
-		nxDevice,
-		nyDevice,
+		nx,
+		ny,
 
 		BLOCK_X,
 		BLOCK_Y,
@@ -149,7 +145,7 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DXYWENOADVp(&xyWENOCompute, 0);
+	custenCompute2DXYWENOADVp(&xyWENOCompute, 1);
 
 	// // Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();

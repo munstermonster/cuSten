@@ -123,10 +123,6 @@ int main()
 	// Set up device
 	// -----------------------------
 
-	// Number of points per device, subdividing in y
-	int nxDevice = nx;
-	int nyDevice = ny;
-
 	// Set up the compute device structs
 	cuSten_t xyDirCompute;
 
@@ -138,8 +134,8 @@ int main()
 
 		numTiles,
 
-		nxDevice,
-		nyDevice,
+		nx,
+		ny,
 
 		BLOCK_X,
 		BLOCK_Y,

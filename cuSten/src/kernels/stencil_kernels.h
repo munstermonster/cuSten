@@ -16,6 +16,10 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+/**
+ * @file stencil_kernels.h
+ * Header file for cuSten kernels
+ */
 
 // ---------------------------------------------------------------------
 // Define Header
@@ -64,7 +68,7 @@ void custenCompute2DXp
 );
 
 // ----------------------------------------
-// 2D x direction non periodic with user fun
+// 2D x direction non periodic - user function
 // ----------------------------------------
 
 void custenCompute2DXnpFun
@@ -75,7 +79,7 @@ void custenCompute2DXnpFun
 );
 
 // ----------------------------------------
-// 2D x direction periodic with user fun
+// 2D x direction periodic - user function
 // ----------------------------------------
 
 void custenCompute2DXpFun
@@ -97,7 +101,7 @@ void custenCompute2DYp
 );
 
 // ----------------------------------------
-// 2D y direction periodic with user fun
+// 2D y direction periodic - user function
 // ----------------------------------------
 
 void custenCompute2DYpFun
@@ -119,7 +123,7 @@ void custenCompute2DYnp
 );
 
 // ----------------------------------------
-// 2D y direction non periodic user function
+// 2D y direction non periodic - user function
 // ----------------------------------------
 
 void custenCompute2DYnpFun
@@ -141,7 +145,7 @@ void custenCompute2DXYp
 );
 
 // ----------------------------------------
-// 2D xy direction periodic user function
+// 2D xy direction periodic - user function
 // ----------------------------------------
 
 void custenCompute2DXYpFun
@@ -163,7 +167,7 @@ void custenCompute2DXYnp
 );
 
 // ----------------------------------------
-// 2D xy direction non periodic user function
+// 2D xy direction non periodic - user function
 // ----------------------------------------
 
 void custenCompute2DXYnpFun 
@@ -174,7 +178,7 @@ void custenCompute2DXYnpFun
 );
 
 // ----------------------------------------
-// 2D xy WENO periodic user function
+// 2D xy WENO periodic
 // ----------------------------------------
 
 void custenCompute2DXYWENOADVp

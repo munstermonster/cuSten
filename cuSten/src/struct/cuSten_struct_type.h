@@ -1,6 +1,5 @@
 // Andrew Gloster
 // May 2018
-// File detailing struct type used in cuSten library
 
 //   Copyright 2018 Andrew Gloster
 
@@ -16,6 +15,10 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+/**
+ * @file cuSten_struct_type.h
+ * Detailing the stuct used in the cuSten library.
+ */
 
 // ---------------------------------------------------------------------
 // Define Header
@@ -36,116 +39,86 @@
 // Define Struct
 // ---------------------------------------------------------------------
 
+ /** @struct cuSten_t
+*  Struct used in the cuSten library
+*  @var deviceNum The device to run the computation on.
+*  @var numStreams Number of streams to be used for loading and unloading etc.
+*  @var numTiles Number of tiles that the domain is to be divided into.
+*  @var nx Total number of points in x.
+*  @var ny Total number of points in y.
+*  @var nyTile Number of point in y direction on a tile.
+*  @var numSten  Number of points in the stencil (or total points when cross derivative)
+*  @var deviceNum The device to run the computation on.
+*  @var numStenLeft Number of points on the left side of the stencil
+*  @var numStenRight Number of points on the right side of the stencil
+*  @var numStenTop Number of points to the top in the stencil
+*  @var numStenBottom Number of points to the bottom in the stencil
+*  @var numStenHoriz Number of points in a horizontal stencil
+*  @var numStenVert Number of points in a vertical stencil
+*  @var BLOCK_X Number of threads in x
+*  @var BLOCK_Y Number of threads in y
+*  @var xGrid Size of grid in x
+*  @var yGrid Size of grid in y
+*  @var mem_shared Amount of shared memory required
+*  @var dataInput Pointers for the input data
+*  @var dataOutput Pointers for the output data
+*  @var uVel Pointers for the u velocity data
+*  @var vVel Pointers for the v velocity data
+*  @var weights Pointer for the device weights data
+*  @var coe  Pointer for the device coefficient data
+*  @var coeDx  Coefficient for WENO - x 
+*  @var coeDy  Coefficient for WENO - y 
+*  @var numCoe  Number of coefficient in function pointer
+*  @var nxLocal Number of points in shared memory in x
+*  @var nyLocal Number of points in shared memory in y
+*  @var boundaryTop Pointers to data for top of tile boundaries
+*  @var boundaryBottom Pointers to data for bottom of tile boundaries
+*  @var numBoundaryTop Number of points in a top boundary
+*  @var numBoundaryBottom Number of points in a bottom boundary
+*  @var streams Pointers to streams used for computing
+*  @var events Pointers to events used for computing
+*  @var devFunc Pointer to user defined function pointer
+*/
+
+
 typedef struct
 {
-    // Device number 
     int deviceNum;
-
-    // Number of streams
     int numStreams;
-
-    // Number of tiles
     int numTiles;
-
-	// Number of x points on the device
-	int nxDevice;
-	
-	// Number of y points on the device
- 	int nyDevice;
-
-	// Number of y points on a tile
+	int nx;
+ 	int ny;
  	int nyTile;
-
-	// Number of points in the stencil (or total points when cross derivative)
 	int numSten;
-
-	// Number of points to the left in the stencil
 	int numStenLeft;
-	
-	// Number of points to the right in the stencil
 	int numStenRight;
-
-	// Number of points in the top of the stencil
 	int numStenTop;
-	
-	// Number of points to the bottom in the stencil
 	int numStenBottom;
-
-	// Number of points in a horizontal stencil
 	int numStenHoriz;
-
-	// Number of points in a vertical stencil
 	int numStenVert;
-
-	// Number of threads in x
 	int BLOCK_X;
-
-	// Number of threads in y
 	int BLOCK_Y; 
-
-	// Size of grid in x
 	int xGrid;
-
-	// Sixe of grid in y
 	int yGrid;
-
-	// Amount of shared memory required
 	int mem_shared; 
-
-	// Pointers for the input data
 	double** dataInput;
-
-	// Pointers for the ouput data
 	double** dataOutput;
-
-	// Pointers for the input data
 	double** uVel;
-
-	// Pointers for the ouput data
 	double** vVel;
-
-	// Pointer for the device weights data
 	double* weights;
-
-	// Pointer to coefficients used
 	double* coe;
-
-	// Coefficient for WENO - x 
 	double coeDx;
-
-	// Coefficient for WENO - y
 	double coeDy;
-
-	// Number of coefficients
 	int numCoe;
-
-	// Local points in shared memory in x
 	int nxLocal;
-
-	// Local points in shared memory in x
 	int nyLocal;	
-
-	// Boundary locations for top of tiles
 	double** boundaryTop;
-
-	// Boundary locations for bottom of tiles
 	double** boundaryBottom;
-
-	// Number of points in top boundary data
 	int numBoundaryTop;
-
-	// Number of points in bottom boundary data
 	int numBoundaryBottom;
-
-	// Streams to permute through
 	cudaStream_t* streams;
-
-	// Events for tracking
 	cudaEvent_t* events;
-
-	// Function Pointer
 	double* devFunc;
-
 } cuSten_t;
 
 #endif

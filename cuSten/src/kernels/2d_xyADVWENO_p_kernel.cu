@@ -1,6 +1,5 @@
 // Andrew Gloster
 // November 2018
-// Kernel to apply a xy WENO stencil on a 2D grid - periodic
 
 //   Copyright 2018 Andrew Gloster
 
@@ -16,6 +15,10 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+
+/*! \file 2d_xyADVWENO_p_kernel.cu
+    Kernel to apply a xy WENO stencil on a 2D grid - periodic
+*/
 
 // ---------------------------------------------------------------------
 //  Standard Libraries and Headers
@@ -35,8 +38,17 @@
 // Code to apply the WENO stencil
 // ---------------------------------------------------------------------
 
+/*! \fun static __global__ void kernel2DXnpFun
+    \brief Function to apply WENO scheme from Level Set Methods - Fedkiw 
+    \param v1 Parameter matching notation from book 
+	\param v2 Parameter matching notation from book 
+	\param v3 Parameter matching notation from book 
+	\param v4 Parameter matching notation from book 
+	\param v5 Parameter matching notation from book 
+*/
+
 // Notation from Level Set Methods - Fedkiw
-static __device__ double wenoSten
+__device__ double wenoSten
 (
 	double v1,
 	double v2,
@@ -77,23 +89,47 @@ static __device__ double wenoSten
 //  Kernel Definition
 // ---------------------------------------------------------------------
 
-// We don't care about corner values
-static __global__ void kernel2DXYWENOADVp
+/*! \fun __global__ void kernel2DXYWENOADVp
+    \brief Device function to apply the stencil to the data and output the answer.
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function
+	\param uVel Pointer to the x direction advecting velocity 
+	\param vVel Pointer to the y direction advecting velocity 
+	\param boundaryTop Pointer to data in the top boundary of the current tile
+	\param boundaryBottom Pointer to data in the bottom boundary of the current tile
+	\param coeDx x direction coefficient
+	\param coeDy y direction coefficient
+	\param numSten Total number of points in the stencil
+	\param numStenHoriz Number of points in a horizontal stencil
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+	\param numStenVert Number of points in a vertical stencil
+	\param numStenTop Number of points on top of stencil
+	\param numStenBottom Number of points on bottom of stencil
+	\param nxLocal Number of points in sharded memory in the x direction
+	\param nyLocal Number of points in sharded memory in the y direction
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+	\param nx Total number of points in the x direction
+	\param nyTile Number of y direction points on tile
+*/
+
+__global__ void kernel2DXYWENOADVp
 (
-	double* dataOutput,  				// Answer data for x direction
+	double* dataOutput,  				
 
-	double* dataInput,					// Input data
+	double* dataInput,					
 
-	double* uVel, 						// X direction velocity
-	double* vVel,						// Y direction velocity
+	double* uVel, 						
+	double* vVel,						
 
-	double* boundaryTop, 				// Data for the top boundary
-	double* boundaryBottom,				// Data for the bottom boundary
+	double* boundaryTop, 				
+	double* boundaryBottom,				
 
-	const double coeDx,					// x direction coefficient
-	const double coeDy,					// y direction coefficient
+	const double coeDx,					
+	const double coeDy,					
 
-	const int numSten,					// Stencil total size 
+	const int numSten,					
 
 	const int numStenHoriz,				// Number of points in a horizontal stencil
 	const int numStenLeft,				// Number of points on left of stencil
@@ -109,7 +145,7 @@ static __global__ void kernel2DXYWENOADVp
 	const int BLOCK_X, 					// Number of threads in block in x	
 	const int BLOCK_Y,					// Number of threads in block in y
 
-	const int nxDevice,					// Total number of points in x on the tile being computed
+	const int nx,					// Total number of points in x on the tile being computed
 	const int nyTile					// Number of y direction points on tile
 )
 {	
@@ -140,23 +176,23 @@ static __global__ void kernel2DXYWENOADVp
 	// Set interior
 	// -----------------------------
 
-	arrayLocal[localIdy * nxLocal + localIdx] = dataInput[globalIdy * nxDevice + globalIdx];
+	arrayLocal[localIdy * nxLocal + localIdx] = dataInput[globalIdy * nx + globalIdx];
 
 	// -----------------------------
 	// Set x boundaries
 	// -----------------------------
 
 	// If block is in the interior
-	if (blockIdx.x != 0 && blockIdx.x != nxDevice / BLOCK_X - 1)
+	if (blockIdx.x != 0 && blockIdx.x != nx / BLOCK_X - 1)
 	{
 		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (globalIdx - numStenLeft)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nx + (globalIdx - numStenLeft)];
 		}
 
 		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + globalIdx + BLOCK_X];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nx + globalIdx + BLOCK_X];
 		}
 	}
 
@@ -165,26 +201,26 @@ static __global__ void kernel2DXYWENOADVp
 	{
 		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (nxDevice - numStenLeft + threadIdx.x)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nx + (nx - numStenLeft + threadIdx.x)];
 		}
 
 		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + globalIdx + BLOCK_X];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nx + globalIdx + BLOCK_X];
 		}
 	}
 
 	// Set the right boundary blocks
-	if (blockIdx.x == nxDevice / BLOCK_X - 1)
+	if (blockIdx.x == nx / BLOCK_X - 1)
 	{
 		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (globalIdx - numStenLeft)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nx + (globalIdx - numStenLeft)];
 		}
 
 		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + threadIdx.x];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nx + threadIdx.x];
 		}
 	}
 
@@ -197,12 +233,12 @@ static __global__ void kernel2DXYWENOADVp
 	{
 		if (threadIdx.y < numStenTop )
 		{
-			arrayLocal[threadIdx.y * nxLocal + localIdx] = dataInput[(globalIdy - numStenTop) * nxDevice + globalIdx];
+			arrayLocal[threadIdx.y * nxLocal + localIdx] = dataInput[(globalIdy - numStenTop) * nx + globalIdx];
 		}
 
 		if (threadIdx.y < numStenBottom)
 		{
-			arrayLocal[(localIdy + BLOCK_Y) * nxLocal + localIdx] = dataInput[(globalIdy + BLOCK_Y) * nxDevice + globalIdx];
+			arrayLocal[(localIdy + BLOCK_Y) * nxLocal + localIdx] = dataInput[(globalIdy + BLOCK_Y) * nx + globalIdx];
 		}
 	}
 
@@ -211,12 +247,12 @@ static __global__ void kernel2DXYWENOADVp
 	{
 		if (threadIdx.y < numStenTop)
 		{
-			arrayLocal[threadIdx.y * nxLocal + localIdx] = boundaryTop[threadIdx.y * nxDevice + globalIdx];
+			arrayLocal[threadIdx.y * nxLocal + localIdx] = boundaryTop[threadIdx.y * nx + globalIdx];
 		}
 
 		if (threadIdx.y < numStenBottom)
 		{
-			arrayLocal[(localIdy + BLOCK_Y) * nxLocal + localIdx] = dataInput[(globalIdy + BLOCK_Y) * nxDevice + globalIdx];
+			arrayLocal[(localIdy + BLOCK_Y) * nxLocal + localIdx] = dataInput[(globalIdy + BLOCK_Y) * nx + globalIdx];
 		}
 	}
 
@@ -225,12 +261,12 @@ static __global__ void kernel2DXYWENOADVp
 	{
 		if (threadIdx.y < numStenTop)
 		{
-			arrayLocal[threadIdx.y * nxLocal + localIdx] = dataInput[(globalIdy - numStenTop) * nxDevice + globalIdx];
+			arrayLocal[threadIdx.y * nxLocal + localIdx] = dataInput[(globalIdy - numStenTop) * nx + globalIdx];
 		}
 
 		if (threadIdx.y < numStenBottom)
 		{
-			arrayLocal[(localIdy + BLOCK_Y) * nxLocal + localIdx] = boundaryBottom[threadIdx.y * nxDevice + globalIdx];
+			arrayLocal[(localIdy + BLOCK_Y) * nxLocal + localIdx] = boundaryBottom[threadIdx.y * nx + globalIdx];
 		}
 	}
 
@@ -250,7 +286,7 @@ static __global__ void kernel2DXYWENOADVp
 	// Set the index for the i - 3 point
 	stenSet = localIdy * nxLocal + (localIdx - numStenLeft);
 
-	if (uVel[globalIdy * nxDevice + globalIdx] > 0.0)
+	if (uVel[globalIdy * nx + globalIdx] > 0.0)
 	{
 		stenSet += 1;
 
@@ -302,7 +338,7 @@ static __global__ void kernel2DXYWENOADVp
 	// Set the index for the j - 3 point
 	stenSet = (localIdy - numStenTop) * nxLocal + localIdx;
 
-	if (vVel[globalIdy * nxDevice + globalIdx] > 0.0)
+	if (vVel[globalIdy * nx + globalIdx] > 0.0)
 	{
 		stenSet += nxLocal;
 
@@ -357,12 +393,18 @@ static __global__ void kernel2DXYWENOADVp
 
 	__syncthreads();
 
-	dataOutput[globalIdy * nxDevice + globalIdx] = uVel[globalIdy * nxDevice + globalIdx] * Fx +  vVel[globalIdy * nxDevice + globalIdx] * Fy;
+	dataOutput[globalIdy * nx + globalIdx] = uVel[globalIdy * nx + globalIdx] * Fx +  vVel[globalIdy * nx + globalIdx] * Fy;
 }
 
 // ---------------------------------------------------------------------
 // Function to compute kernel
 // ---------------------------------------------------------------------
+
+/*! \fun void custenCompute2DXYWENOADVp
+    \brief Function called by user to compute the stencil.
+    \param pt_cuSten Pointer to cuSten data type which contains all the necessary input
+	\param offload Boolean set by user to 1 if they wish to move the data back to the host after completing computation, 0 otherwise
+*/
 
 void custenCompute2DXYWENOADVp
 (
@@ -386,12 +428,10 @@ void custenCompute2DXYWENOADVp
 	cudaStreamSynchronize(pt_cuSten->streams[1]);
 
 	// Prefetch the tile data
-	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-
-	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-
-	cudaMemPrefetchAsync(pt_cuSten->uVel[0], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->vVel[0], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->uVel[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->vVel[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 	// Prefetch the boundary data
 	cudaMemPrefetchAsync(pt_cuSten->boundaryTop[0], pt_cuSten->numBoundaryTop * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
@@ -441,10 +481,11 @@ void custenCompute2DXYWENOADVp
 			pt_cuSten->BLOCK_X, 
 			pt_cuSten->BLOCK_Y, 
 
-			pt_cuSten->nxDevice, 
+			pt_cuSten->nx, 
 			pt_cuSten->nyTile
 		);
 
+		// Error checking
 		sprintf(msgStringBuffer, "Error computing tile %d on GPU %d", tile, pt_cuSten->deviceNum);
 		checkError(msgStringBuffer);	
 
@@ -454,28 +495,27 @@ void custenCompute2DXYWENOADVp
     		// Ensure the steam is free to load the data
     		cudaStreamSynchronize(pt_cuSten->streams[1]);
 
-    		// Prefetch the tiles
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-
-			cudaMemPrefetchAsync(pt_cuSten->uVel[tile + 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-			cudaMemPrefetchAsync(pt_cuSten->vVel[tile + 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-
-		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+    		// Prefetch the necessary tiles
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+			cudaMemPrefetchAsync(pt_cuSten->uVel[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+			cudaMemPrefetchAsync(pt_cuSten->vVel[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 		 	// Prefetch the next boundaries
 		 	cudaMemPrefetchAsync(pt_cuSten->boundaryTop[tile + 1], pt_cuSten->numBoundaryTop * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 			cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[tile + 1], pt_cuSten->numBoundaryBottom * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
+			// Record the event
 			cudaEventRecord(pt_cuSten->events[1], pt_cuSten->streams[1]);
     	}
 
 		// Offload the previous set of tiles, this is to ensure we don't get page faults
 		if (offload == 1 && tile > 0)
 		{
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile - 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile - 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-			cudaMemPrefetchAsync(pt_cuSten->uVel[tile - 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-			cudaMemPrefetchAsync(pt_cuSten->vVel[tile - 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+			cudaMemPrefetchAsync(pt_cuSten->uVel[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+			cudaMemPrefetchAsync(pt_cuSten->vVel[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
 			cudaMemPrefetchAsync(pt_cuSten->boundaryTop[tile - 1], pt_cuSten->numBoundaryTop * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
 			cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[tile - 1],  pt_cuSten->numBoundaryBottom * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
 		}
@@ -495,10 +535,10 @@ void custenCompute2DXYWENOADVp
     // Offload the final set
 	if (offload == 1)
 	{
-		cudaMemPrefetchAsync(pt_cuSten->dataOutput[pt_cuSten->numTiles - 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-		cudaMemPrefetchAsync(pt_cuSten->dataInput[pt_cuSten->numTiles - 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-		cudaMemPrefetchAsync(pt_cuSten->uVel[pt_cuSten->numTiles - 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-		cudaMemPrefetchAsync(pt_cuSten->vVel[pt_cuSten->numTiles - 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+		cudaMemPrefetchAsync(pt_cuSten->dataOutput[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+		cudaMemPrefetchAsync(pt_cuSten->dataInput[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+		cudaMemPrefetchAsync(pt_cuSten->uVel[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+		cudaMemPrefetchAsync(pt_cuSten->vVel[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
 		cudaMemPrefetchAsync(pt_cuSten->boundaryTop[pt_cuSten->numTiles - 1], pt_cuSten->numBoundaryTop * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
 		cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[pt_cuSten->numTiles - 1],  pt_cuSten->numBoundaryBottom * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
 	}

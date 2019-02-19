@@ -6,6 +6,7 @@ CHANGELOG
 
 | Contents               |
 | :--------------------- |
+| [cuSten 2.0](#cuSten-20) |
 | [cuSten 1.5](#cuSten-15) |
 | [cuSten 1.4](#cuSten-14) |
 | [cuSten 1.3](#cuSten-13) |
@@ -16,6 +17,13 @@ CHANGELOG
 
 
 </details>
+
+cuSten 2.0
+---------
+
+* Swap functions added
+* cuPentCahnADI added as an example solver
+* Documentation completed with doxygen
 
 cuSten 1.5
 ---------

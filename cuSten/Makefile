@@ -53,6 +53,9 @@ $(OBJBIN)/%.o: $(UTILSRCDIR)/%.cu
 $(OBJBIN)/%.o: $(STRUCTSRCDIR)/%.cu
 	$(NVCC) -c $(NVFLAGS) -o $@ $<
 
+doc:
+	doxygen Doxyfile
+
 # ----------------------
 # Remove everything
 # ---------------------
@@ -60,4 +63,5 @@ $(OBJBIN)/%.o: $(STRUCTSRCDIR)/%.cu
 clean:
 	rm -rf $(LIBBIN)
 	rm -rf $(OBJBIN)
+	rm -rf doc/
 

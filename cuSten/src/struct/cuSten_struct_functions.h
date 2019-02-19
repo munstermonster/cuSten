@@ -1,6 +1,5 @@
 // Andrew Gloster
 // May 2018
-// File detailing struct type used in cuSten library
 
 //   Copyright 2018 Andrew Gloster
 
@@ -16,6 +15,11 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+
+/**
+ * @file cuSten_struct_functions.h
+ * Header file with function declarations for Create, Destroy and Swap
+ */
 
 // ---------------------------------------------------------------------
 // Define Header
@@ -44,107 +48,197 @@
 // 2D x direction non periodic
 // ----------------------------------------
 
-// Create the struct for a 2D x direction non periodic stencil
+/*! \fun __global__ void custenCreate2DXnp
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param weights Pointer to input weights for each point in the stencil
+	\param numSten Total number of points in the stencil
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+*/
+
 void custenCreate2DXnp(
-	cuSten_t* pt_cuSten,		// Pointer to the user created struct
-
-	int deviceNum,				// GPU device number (important with multi gpu systems)
-
-	int numTiles,				// Number of tiles to use
-
-	int nxDevice,				// Total number of points in x that will be computed on GPU
-	int nyDevice,				// Total number of points in y that will be computed on GPU
-
-	int BLOCK_X,				// Size of thread block in x
-	int BLOCK_Y,				// Sixe of thread block in y
-
-	double* dataNew,			// Output data
-	double* dataOld,			// Input data
-	double* weights,			// Stencil weights
-
-	int numSten,				// Size of stencil
-	int numStenLeft,			// Number of points to left in stencil
-	int numStenRight			// Number of points to right in stencil
+	cuSten_t* pt_cuSten,
+	int deviceNum,
+	int numTiles,
+	int nx,
+	int ny,
+	int BLOCK_X,
+	int BLOCK_Y,
+	double* dataOutput,
+	double* dataInput,
+	double* weights,
+	int numSten,
+	int numStenLeft,
+	int numStenRight
 );
 
-// Destroy the struct for a 2D x direction non periodic stencil
+/*! \fun __global__ void custenSwap2DXnp
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DXnp(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DXnp
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
 void custenDestroy2DXnp(
-	cuSten_t* pt_cuSten   		// Pointer to user struct
-); 
+	cuSten_t* pt_cuSten
+);
+
+// ----------------------------------------
+// 2D x direction non periodic - user function
+// ----------------------------------------
+
+/*! \fun __global__ void custenCreate2DXnpFun
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param numSten Total number of points in the stencil
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+	\param Number of coefficients used by the user in their function
+	\param Pointer to user function
+*/
+
+void custenCreate2DXnpFun(
+	cuSten_t* pt_cuSten,
+	int deviceNum,
+	int numTiles,
+	int nx,
+	int ny,
+	int BLOCK_X,
+	int BLOCK_Y,
+	double* dateOutput,
+	double* dateInput,
+	double* coe,
+	int numSten,
+	int numStenLeft,
+	int numStenRight,
+	int numCoe,
+	double* func
+);
+
+/*! \fun __global__ void custenSwap2DXnpFun
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DXnpFun(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DXnpFun
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
+void custenDestroy2DXnpFun(
+	cuSten_t* pt_cuSten
+);
 
 // ----------------------------------------
 // 2D x direction periodic
 // ----------------------------------------
 
-// Create the struct for a 2D x direction non periodic stencil
+/*! \fun __global__ void custenCreate2DXp
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param weights Pointer to input weights for each point in the stencil
+	\param numSten Total number of points in the stencil
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+*/
+
 void custenCreate2DXp(
-	cuSten_t* pt_cuSten,		// Pointer to the user created struct
-
-	int deviceNum,				// GPU device number (important with multi gpu systems)
-
-	int numTiles,				// Number of tiles to use
-
-	int nxDevice,				// Total number of points in x that will be computed on GPU
-	int nyDevice,				// Total number of points in y that will be computed on GPU
-
-	int BLOCK_X,				// Size of thread block in x
-	int BLOCK_Y,				// Sixe of thread block in y
-
-	double* dataNew,			// Output data
-	double* dataOld,			// Input data
-	double* weights,			// Stencil weights
-
-	int numSten,				// Size of stencil
-	int numStenLeft,			// Number of points to left in stencil
-	int numStenRight			// Number of points to right in stencil
-);
-
-// Destroy the struct for a 2D x direction non periodic stencil
-void custenDestroy2DXp(
-	cuSten_t* pt_cuSten   		// Pointer to user struct
-); 
-
-// ----------------------------------------
-// 2D x direction with non periodic user function
-// ----------------------------------------
-
-// Create the struct for a 2D x direction non periodic stencil
-void custenCreate2DXnpFun(
-	cuSten_t* pt_cuSten,		
-
+	cuSten_t* pt_cuSten,
 	int deviceNum,
-
 	int numTiles,
-
-	int nxDevice,
-	int nyDevice,
-
+	int nx,
+	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-
 	double* dataNew,
 	double* dataOld,
-	double* coe,
-
+	double* weights,
 	int numSten,
 	int numStenLeft,
-	int numStenRight,
-
-	int numCoe,
-
-	double* func
+	int numStenRight
 );
 
-// Destroy the struct for a 2D x direction non periodic stencil with user function
-void custenDestroy2DXnpFun(
-	cuSten_t* pt_cuSten			// Pointer to user struct
+/*! \fun __global__ void custenSwap2DXp
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DXp(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DXnp
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
+void custenDestroy2DXp(
+	cuSten_t* pt_cuSten
 );
 
 // ----------------------------------------
-// 2D x direction with periodic user function
+// 2D x direction periodic - user function
 // ----------------------------------------
 
-// Create the struct for a 2D x direction non periodic stencil
+/*! \fun __global__ void custenCreate2DXpFun
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param numSten Total number of points in the stencil
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+	\param Number of coefficients used by the user in their function
+	\param Pointer to user function
+*/
+
 void custenCreate2DXpFun(
 	cuSten_t* pt_cuSten,
 
@@ -152,8 +246,8 @@ void custenCreate2DXpFun(
 
 	int numTiles,
 
-	int nxDevice,
-	int nyDevice,
+	int nx,
+	int ny,
 
 	int BLOCK_X,
 	int BLOCK_Y,
@@ -171,333 +265,577 @@ void custenCreate2DXpFun(
 	double* func
 );
 
-// Destroy the struct for a 2D x direction non periodic stencil with user function
+/*! \fun __global__ void custenSwap2DXpFun
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DXpFun(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DXpFun
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
 void custenDestroy2DXpFun(
-	cuSten_t* pt_cuSten			// Pointer to user struct
+	cuSten_t* pt_cuSten
+);
+
+// ----------------------------------------
+// 2D xy direction periodic WENO
+// ----------------------------------------
+
+/*! \fun __global__ void custenCreate2DXYWENOADVp
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+	\param dx Spacing of grid in x direction
+	\param dy Spacing of grid in y direction
+	\param u Pointer to u velocity data
+	\param v Pointer to v velocity data
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+*/
+
+void custenCreate2DXYWENOADVp
+(
+	cuSten_t* pt_cuSten,
+	int deviceNum,
+	int numTiles,
+	int nx,
+	int ny,
+	int BLOCK_X,
+	int BLOCK_Y,
+	double dx,
+	double dy,
+	double* u,
+	double* v,
+	double* dataOutput,
+	double* dataInput
+);
+
+/*! \fun __global__ void custenSwap2DXYWENOADVp
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DXYWENOADVp(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DXYWENOADVp
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
+void custenDestroy2DXYWENOADVp
+(
+	cuSten_t* pt_cuSten
+);
+
+// ----------------------------------------
+// 2D xy direction non periodic 
+// ----------------------------------------
+
+/*! \fun __global__ void custenCreate2DXYnp
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param weights Pointer to input weights for each point in the stencil
+	\param numStenHoriz Total number of points in the stencil in the x direction
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+	\param numStenHoriz Total number of points in the stencil in the y direction
+	\param numStenTop Number of points on the top of the stencil
+	\param numStenBottom Number of points on the bottom of the stencil
+*/
+
+void custenCreate2DXYnp(
+	cuSten_t* pt_cuSten,
+	int deviceNum,
+	int numTiles,
+	int nx,
+	int ny,
+	int BLOCK_X,
+	int BLOCK_Y,
+	double* dataOutput,
+	double* dataInput,
+	double* weights,
+	int numStenHoriz,
+	int numStenLeft,
+	int numStenRight,
+	int numStenVert,
+	int numStenTop,
+	int numStenBottom
+);
+
+/*! \fun __global__ void custenSwap2DXYnp
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DXYnp(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DXYnp
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
+void custenDestroy2DXYnp(
+	cuSten_t* pt_cuSten
+);
+
+// ----------------------------------------
+// 2D xy direction non periodic - user function
+// ----------------------------------------
+
+/*! \fun __global__ void custenCreate2DXYnpFun
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param coe Pointer to input coefficients for the user function
+	\param numStenHoriz Total number of points in the stencil in the x direction
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+	\param numStenHoriz Total number of points in the stencil in the y direction
+	\param numStenTop Number of points on the top of the stencil
+	\param numStenBottom Number of points on the bottom of the stencil
+	\param Pointer to user function
+*/
+
+void custenCreate2DXYnpFun(
+	cuSten_t* pt_cuSten,
+	int deviceNum,
+	int numTiles,
+	int nx,
+	int ny,
+	int BLOCK_X,
+	int BLOCK_Y,
+	double* dataNew,
+	double* dataOld,
+	double* coe,
+	int numStenHoriz,
+	int numStenLeft,
+	int numStenRight,
+	int numStenVert,
+	int numStenTop,
+	int numStenBottom,
+	double* func
+);
+
+/*! \fun __global__ void custenSwap2DXYnpFun
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DXYnpFun(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DXYnpFun
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
+void custenDestroy2DXYnpFun(
+	cuSten_t* pt_cuSten
+);
+
+
+// ----------------------------------------
+// 2D xy direction periodic 
+// ----------------------------------------
+
+/*! \fun __global__ void custenCreate2DXYp
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param weights Pointer to input weights for each point in the stencil
+	\param numStenHoriz Total number of points in the stencil in the x direction
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+	\param numStenHoriz Total number of points in the stencil in the y direction
+	\param numStenTop Number of points on the top of the stencil
+	\param numStenBottom Number of points on the bottom of the stencil
+*/
+
+void custenCreate2DXYp(
+	cuSten_t* pt_cuSten,
+	int deviceNum,
+	int numTiles,
+	int nx,
+	int ny,
+	int BLOCK_X,
+	int BLOCK_Y,
+	double* dataNew,
+	double* dataOld,
+	double* weights,
+	int numStenHoriz,
+	int numStenLeft,
+	int numStenRight,
+	int numStenVert,
+	int numStenTop,
+	int numStenBottom
+);
+
+/*! \fun __global__ void custenSwap2DYp
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DXYp(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DXYp
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
+void custenDestroy2DXYp(
+	cuSten_t* pt_cuSten
+);
+
+// ----------------------------------------
+// 2D xy direction periodic - user function 
+// ----------------------------------------
+
+/*! \fun __global__ void custenCreate2DXYpFun
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param coe Pointer to input coefficients for the user function
+	\param numStenHoriz Total number of points in the stencil in the x direction
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+	\param numStenHoriz Total number of points in the stencil in the y direction
+	\param numStenTop Number of points on the top of the stencil
+	\param numStenBottom Number of points on the bottom of the stencil
+	\param Pointer to user function
+*/
+
+void custenCreate2DXYpFun(
+	cuSten_t* pt_cuSten,
+	int deviceNum,
+	int numTiles,
+	int nx,
+	int ny,
+	int BLOCK_X,
+	int BLOCK_Y,
+	double* dataOutput,
+	double* dataInput,
+	double* coe,
+	int numStenHoriz,
+	int numStenLeft,
+	int numStenRight,
+	int numStenVert,
+	int numStenTop,
+	int numStenBottom,
+	double* func
+);
+
+/*! \fun __global__ void custenSwap2DYpFun
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DXYpFun(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DXYpFun
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
+void custenDestroy2DXYpFun(
+	cuSten_t* pt_cuSten
+);
+
+
+// ----------------------------------------
+// 2D y direction non periodic
+// ----------------------------------------
+
+/*! \fun __global__ void custenCreate2DYnp
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param weights Pointer to the weights for the stencil
+	\param numStenSten Total number of points in the stencil in the y direction
+	\param numStenTop Number of points on the top of the stencil
+	\param numStenBottom Number of points on the bottom of the stencil
+*/
+
+void custenCreate2DYnp(
+	cuSten_t* pt_cuSten,		
+	int deviceNum,				
+	int numTiles,				
+	int nx,				
+	int ny,				
+	int BLOCK_X,			
+	int BLOCK_Y,				
+	double* dataOutput,			
+	double* dataInput,			
+	double* weights,			
+	int numSten,				
+	int numStenTop,				
+	int numStenBottom			
+);
+
+/*! \fun __global__ void custenSwap2DYnp
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DYnp(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DYnp
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
+void custenDestroy2DYnp(
+	cuSten_t* pt_cuSten
+);
+
+// ----------------------------------------
+// 2D y direction non periodic - user function
+// ----------------------------------------
+
+/*! \fun __global__ void custenCreate2DYnpFun
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param coe Pointer to input coefficients for the user function
+	\param numSten Total number of points in the stencil
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+	\param Pointer to user function
+*/
+
+void custenCreate2DYnpFun(
+	cuSten_t* pt_cuSten,		
+	int deviceNum,				
+	int numTiles,				
+	int nx,				
+	int ny,				
+	int BLOCK_X,				
+	int BLOCK_Y,				
+	double* dataOutput,			
+	double* dataInput,			
+	double* coe,				
+	int numSten,				
+	int numStenTop,				
+	int numStenBottom,			
+	double* func 			
+);
+
+/*! \fun __global__ void custenSwap2DYnpFun
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DYnpFun(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DYnpFun
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
+void custenDestroy2DYnpFun(
+	cuSten_t* pt_cuSten
 );
 
 // ----------------------------------------
 // 2D y direction periodic
 // ----------------------------------------
 
-// Create the struct for a 2D x direction non periodic stencil
+/*! \fun __global__ void custenCreate2DYp
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param weights Pointer to the weights for the stencil
+	\param numStenSten Total number of points in the stencil in the y direction
+	\param numStenTop Number of points on the top of the stencil
+	\param numStenBottom Number of points on the bottom of the stencil
+*/
+
 void custenCreate2DYp(
-	cuSten_t* pt_cuSten,		// Pointer to the user created struct
-
-	int deviceNum,				// GPU device number (important with multi gpu systems)
-
-	int numTiles,				// Number of tiles to use
-
-	int nxDevice,				// Total number of points in x that will be computed on GPU
-	int nyDevice,				// Total number of points in y that will be computed on GPU
-
-	int BLOCK_X,				// Size of thread block in x
-	int BLOCK_Y,				// Sixe of thread block in y
-
-	double* dataNew,			// Output data
-	double* dataOld,			// Input data
-	double* weights,			// Stencil weights
-
-	int numSten,				// Size of stencil
-	int numStenTop,				// Number of points in top of stencil
-	int numStenBottom			// Number of points in bottom of stencil
-);
-
-// Destroy the struct for a 2D x direction non periodic stencil
-void custenDestroy2DYp(
-	cuSten_t* pt_cuSten   		// Pointer to user struct
-); 
-
-// ----------------------------------------
-// 2D y direction with periodic user function
-// ----------------------------------------
-
-// Create the struct for a 2D y direction periodic with user function
-void custenCreate2DYpFun(
 	cuSten_t* pt_cuSten,
-
 	int deviceNum,
-
 	int numTiles,
-
-	int nxDevice,
-	int nyDevice,
-
+	int nx,
+	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
+	double* dataOutput,
+	double* dataInput,
+	double* weights,
+	int numSten,
+	int numStenTop,
+	int numStenBottom
+);
 
-	double* dataNew,
-	double* dataOld,
+/*! \fun __global__ void custenSwap2DYp
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DYp(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+);
+
+/*! \fun __global__ void custenDestroy2DYp
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
+void custenDestroy2DYp(
+	cuSten_t* pt_cuSten
+);
+
+// ----------------------------------------
+// 2D y direction periodic - user function
+// ----------------------------------------
+
+/*! \fun __global__ void custenCreate2DYnpFun
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param coe Pointer to input coefficients for the user function
+	\param numSten Total number of points in the stencil
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+	\param Number of coefficients user in user function
+	\param Pointer to user function
+*/
+
+void custenCreate2DYpFun(
+	cuSten_t* pt_cuSten,
+	int deviceNum,
+	int numTiles,
+	int nx,
+	int ny,
+	int BLOCK_X,
+	int BLOCK_Y,
+	double* dataOutput,
+	double* dataInput,
 	double* coe,
-
 	int numSten,
 	int numStenTop,
 	int numStenBottom,
-
 	int numCoe,
-
 	double* func	
 );
 
-// Swap pointers
+/*! \fun __global__ void custenSwap2DYpFun
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
 void custenSwap2DYpFun(
 	cuSten_t* pt_cuSten,
 
-	double* dataOld
+	double* dataInput
 );
 
-// Destroy the struct for a 2D y direction periodic stencil with user function
+/*! \fun __global__ void custenDestroy2DYnpFun
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
+
 void custenDestroy2DYpFun(
 	cuSten_t* pt_cuSten
 );
-
-// ----------------------------------------
-// 2D y direction with non periodic
-// ----------------------------------------
-
-// Function to create the struct for a 2D y direction non periodic
-void custenCreate2DYnp(
-	cuSten_t* pt_cuSten,		// Pointer to the compute struct type
-
-	int deviceNum,				// Device on which to compute this stencil
-
-	int numTiles,				// Number of tiles to divide the data on the device into
-
-	int nxDevice,				// Number of points in x on the device
-	int nyDevice,				// Number of points in y on the device
-
-	int BLOCK_X,				// Number of threads to use in x
-	int BLOCK_Y,				// Number of threads to use in y
-
-	double* dataNew,			// Output data
-	double* dataOld,			// Input data
-	double* weights,			// Arracy containing the weights
-
-	int numSten,				// Number of points in a stencil
-	int numStenTop,				// Number of points in the top of the stencil
-	int numStenBottom			// Number of points in the bottom of the stencil
-);
-
-// Function to destroy the struct for a 2D y direction non periodic
-void custenDestroy2DYnp(
-	cuSten_t* pt_cuSten			// Pointer to the compute struct type
-);
-
-// ----------------------------------------
-// 2D y direction with non periodic user function
-// ----------------------------------------
-
-void custenCreate2DYnpFun(
-	cuSten_t* pt_cuSten,		// Pointer to the compute struct type
-
-	int deviceNum,				// Device on which to compute this stencil
-
-	int numTiles,				// Number of tiles to divide the data on the device into
-
-	int nxDevice,				// Number of points in x on the device
-	int nyDevice,				// Number of points in y on the device
-
-	int BLOCK_X,				// Number of threads to use in x
-	int BLOCK_Y,				// Number of threads to use in y
-
-	double* dataNew,			// Output data
-	double* dataOld,			// Input data
-	double* coe,				// Arracy containing the weights
-
-	int numSten,				// Number of points in a stencil
-	int numStenTop,				// Number of points in the top of the stencil
-	int numStenBottom,			// Number of points in the bottom of the stencil
-
-	double* func 				// User defined function
-);
-
-// Function to destroy the struct for a 2D y direction non periodic user function
-void custenDestroy2DYnpFun(
-	cuSten_t* pt_cuSten
-);
-
-// ----------------------------------------
-// 2D xy direction periodic
-// ----------------------------------------
-
-// Function to create the struct for a 2D xy direction periodic
-void custenCreate2DXYp(
-	cuSten_t* pt_cuSten,
-
-	int deviceNum,
-
-	int numTiles,
-
-	int nxDevice,
-	int nyDevice,
-
-	int BLOCK_X,
-	int BLOCK_Y,
-
-	double* dataNew,
-	double* dataOld,
-	double* weights,
-
-	int numStenHoriz,
-	int numStenLeft,
-	int numStenRight,
-
-	int numStenVert,
-	int numStenTop,
-	int numStenBottom
-);
-
-// Function to destroy the struct for a 2D xy direction periodic
-void custenDestroy2DXYp(
-	cuSten_t* pt_cuSten
-);
-
-// ----------------------------------------
-// 2D xy direction periodic user function
-// ----------------------------------------
-
-// Function to create the struct for a 2D xy direction periodic user function
-void custenCreate2DXYpFun(
-	cuSten_t* pt_cuSten,
-
-	int deviceNum,
-
-	int numTiles,
-
-	int nxDevice,
-	int nyDevice,
-
-	int BLOCK_X,
-	int BLOCK_Y,
-
-	double* dataNew,
-	double* dataOld,
-	double* coe,
-
-	int numStenHoriz,
-	int numStenLeft,
-	int numStenRight,
-
-	int numStenVert,
-	int numStenTop,
-	int numStenBottom,
-
-	double* func
-);
-
-// Function to destroy the struct for a 2D xy direction periodic user function
-void custenDestroy2DXYpFun(
-	cuSten_t* pt_cuSten
-);
-
-// ----------------------------------------
-// 2D xy direction non periodic
-// ----------------------------------------
-
-// Function to create the struct for a 2D xy direction periodic
-void custenCreate2DXYnp(
-	cuSten_t* pt_cuSten,
-
-	int deviceNum,
-
-	int numTiles,
-
-	int nxDevice,
-	int nyDevice,
-
-	int BLOCK_X,
-	int BLOCK_Y,
-
-	double* dataNew,
-	double* dataOld,
-	double* weights,
-
-	int numStenHoriz,
-	int numStenLeft,
-	int numStenRight,
-
-	int numStenVert,
-	int numStenTop,
-	int numStenBottom
-);
-
-// Function to destroy the struct for a 2D xy direction periodic
-void custenDestroy2DXYnp(
-	cuSten_t* pt_cuSten
-);
-
-// ----------------------------------------
-// 2D xy direction non periodic user function
-// ----------------------------------------
-
-// Function to create the struct for a 2D xy direction non periodic user function
-void custenCreate2DXYnpFun(
-	cuSten_t* pt_cuSten,
-
-	int deviceNum,
-
-	int numTiles,
-
-	int nxDevice,
-	int nyDevice,
-
-	int BLOCK_X,
-	int BLOCK_Y,
-
-	double* dataNew,
-	double* dataOld,
-	double* coe,
-
-	int numStenHoriz,
-	int numStenLeft,
-	int numStenRight,
-
-	int numStenVert,
-	int numStenTop,
-	int numStenBottom,
-
-	double* func
-);
-
-// Function to destroy the struct for a 2D xy direction non periodic user function
-void custenDestroy2DXYnpFun(
-	cuSten_t* pt_cuSten
-);
-
-// ---------------------------------------------------------------------
-// Function to create the struct for a WENO solver in XY
-// ---------------------------------------------------------------------
-
-void custenCreate2DXYWENOADVp
-(
-	cuSten_t* pt_cuSten,
-
-	int deviceNum,
-
-	int numTiles,
-
-	int nxDevice,
-	int nyDevice,
-
-	int BLOCK_X,
-	int BLOCK_Y,
-
-	double dx,
-	double dy,
-
-	double* u,
-	double* v,
-
-	double* dataNew,
-
-	double* dataOld
-);
-
-// Function to destroy the struct for a WENO solver in XY
-void custenDestroy2DXYWENOADVp
-(
-	cuSten_t* pt_cuSten
-); 
 
 // ---------------------------------------------------------------------
 // End of header file functions

@@ -25,7 +25,6 @@
 #include <iostream>
 #include <cstdio>
 #include "cuda.h"
-#include "omp.h"
 
 // ---------------------------------------------------------------------
 // cuSten - Note the file position is relative
@@ -33,30 +32,30 @@
 
 #include "../../cuSten/cuSten.h"
 
-
-
 // ---------------------------------------------------------------------
 // MACROS
 // ---------------------------------------------------------------------
 
-#define BLOCK_X 8
-#define BLOCK_Y 8
+#define BLOCK_X 32
+#define BLOCK_Y 32
 
+// ---------------------------------------------------------------------
+// Function pointer definition
+// ---------------------------------------------------------------------
 
-// Data -- Coefficients -- Current node index
+// Data -- Coefficients -- Stencil Centre Index
 typedef double (*devArg1X)(double*, double*, int);
 
-// ---------------------------------------------------------------------
-// Main Program
-// ---------------------------------------------------------------------
-
-
-__inline__ __device__ double square(double* data, double* coe, int loc)
+__inline__ __device__ double CentralDifference(double* data, double* coe, int loc)
 {	
 	return (data[loc - 1] - 2 * data[loc] + data[loc + 1]) * coe[0];	
 }
 
-__device__ devArg1X devfunc = square;
+__device__ devArg1X devfunc = CentralDifference;
+
+// ---------------------------------------------------------------------
+// Main Program
+// ---------------------------------------------------------------------
 
 int main()
 {	
@@ -64,8 +63,8 @@ int main()
 	int deviceNum = 0;
 
 	// Declare Domain Size
-	int nx = 128;
-	int ny = 64;
+	int nx = 8192;
+	int ny = 8192;
 
 	double lx = 2 * M_PI;
 
@@ -73,7 +72,7 @@ int main()
 	double dx = lx / (double) (nx);
 
 	// Set the number of tiles per device
-	int numTiles = 1;
+	int numTiles = 4;
 
 	// Initial Conditions
 	double* dataOld;
@@ -125,18 +124,15 @@ int main()
 	// Set up device
 	// -----------------------------
 
-	// Number of points per device, subdividing in y
-	int nxDevice = nx;
-	int nyDevice = ny;
-
 	// Set up the compute device structs
 	cuSten_t xDirCompute;
 
+	// Copy the function pointer to the device
 	double* func;
 	cudaMemcpyFromSymbol(&func, devfunc, sizeof(devArg1X));
 
 	// Initialise the instance of the stencil
-	custenCreate2DXnpFun(&xDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, coe, numSten, numStenLeft, numStenRight, numCoe, func);
+	custenCreate2DXnpFun(&xDirCompute, deviceNum, numTiles, nx, ny, BLOCK_X, BLOCK_Y, dataNew, dataOld, coe, numSten, numStenLeft, numStenRight, numCoe, func);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();
@@ -146,7 +142,7 @@ int main()
 	// -----------------------------
 	
 	// Run the computation
-	custenCompute2DXnpFun(&xDirCompute, 0);
+	custenCompute2DXnpFun(&xDirCompute, 1);
 
 	// Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();

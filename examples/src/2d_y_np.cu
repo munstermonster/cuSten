@@ -115,15 +115,11 @@ int main()
 	// Set up device
 	// -----------------------------
 
-	// Number of points per device, subdividing in y
-	int nxDevice = nx;
-	int nyDevice = ny;
-
 	// Set up the compute device structs
 	cuSten_t yDirCompute;
 
 	// Initialise the instance of the stencil
-	custenCreate2DYnp(&yDirCompute, deviceNum, numTiles, nxDevice, nyDevice, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenTop, numStenBottom);
+	custenCreate2DYnp(&yDirCompute, deviceNum, numTiles, nx, ny, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenTop, numStenBottom);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();

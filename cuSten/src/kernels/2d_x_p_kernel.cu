@@ -16,6 +16,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+/*! \file 2d_x_p_kernel.cu
+    Functions to apply a periodic stencil to a 2D domain, x-direction only.
+*/
 
 // ---------------------------------------------------------------------
 //  Standard Libraries and Headers
@@ -35,25 +38,32 @@
 //  Kernel Definition
 // ---------------------------------------------------------------------
 
+/*! \fun static __global__ void kernel2DXnp
+    \brief Device function to apply the stencil to the data and output the answer.
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function
+	\param weights Pointer to coefficients to be used in stencil
+	\param numSten Total number of points in the stencil
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+	\param nxLocal Number of points in sharded memory in the x direction
+	\param nyLocal Number of points in sharded memory in the y direction
+	\param BLOCK_X Size of thread block in the x direction
+	\param nx Total number of points in the x direction
+*/
+
 __global__ void kernel2DXp
 (
-
-	double* dataOutput,  					// Answer data
-
-	double* dataInput,					// Input data
-
-	const double* d_weights,       		// Stencil weights
-
-	const int numSten,					// Stencil width
-	const int numStenLeft,				// Number of points to the left
-	const int numStenRight,				// Number of points to the right
-
-	const int nxLocal,					// Number of points in shared memory in x direction
-	const int nyLocal,					// Number of points in shared memory in y direction
-
-	const int BLOCK_X,					// Number of threads in block in y
-
-	const int nxDevice					// Number of points in x on the device
+	double* dataOutput,  					
+	double* dataInput,					
+	const double* weights,       		
+	const int numSten,					
+	const int numStenLeft,				
+	const int numStenRight,				
+	const int nxLocal,					
+	const int nyLocal,					
+	const int BLOCK_X,					
+	const int nx
 )
 {	
 	// -----------------------------	
@@ -69,7 +79,7 @@ __global__ void kernel2DXp
 	#pragma unroll
 	for (int k = 0; k < numSten; k++)
 	{
-		weigthsLocal[k] = d_weights[k];
+		weigthsLocal[k] = weights[k];
 	}
 
 	// -----------------------------
@@ -94,56 +104,56 @@ __global__ void kernel2DXp
 	// Set interior
 	// -----------------------------
 
-	arrayLocal[localIdy * nxLocal + localIdx] = dataInput[globalIdy * nxDevice + globalIdx];
+	arrayLocal[localIdy * nxLocal + localIdx] = dataInput[globalIdy * nx + globalIdx];
 
 	// -----------------------------
 	// Set x boundaries
 	// -----------------------------
 
 	// If block is in the interior
-	if (blockIdx.x != 0 && blockIdx.x != nxDevice / BLOCK_X - 1)
+	if (blockIdx.x != 0 && blockIdx.x != nx / BLOCK_X - 1)
 	{
 
 		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (globalIdx - numStenLeft)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nx + (globalIdx - numStenLeft)];
 		}
 
 		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + globalIdx + BLOCK_X];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nx + globalIdx + BLOCK_X];
 		}
 	}
 
 	// If block is on the left boundary
 	if (blockIdx.x == 0)
 	{
-		arrayLocal[localIdy * nxLocal + localIdx] = dataInput[globalIdy * nxDevice + globalIdx];
+		arrayLocal[localIdy * nxLocal + localIdx] = dataInput[globalIdy * nx + globalIdx];
 
 		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (nxDevice - numStenLeft + threadIdx.x)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nx + (nx - numStenLeft + threadIdx.x)];
 		}
 
 		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + globalIdx + BLOCK_X];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nx + globalIdx + BLOCK_X];
 		}
 	}
 
 	// Set the right boundary blocks
-	if (blockIdx.x == nxDevice / BLOCK_X - 1)
+	if (blockIdx.x == nx / BLOCK_X - 1)
 	{
-		arrayLocal[localIdy * nxLocal + threadIdx.x + numStenLeft] = dataInput[globalIdy * nxDevice + globalIdx];
+		arrayLocal[localIdy * nxLocal + threadIdx.x + numStenLeft] = dataInput[globalIdy * nx + globalIdx];
 
 		if (threadIdx.x < numStenLeft)
 		{
-			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nxDevice + (globalIdx - numStenLeft)];
+			arrayLocal[localIdy * nxLocal + threadIdx.x] = dataInput[globalIdy * nx + (globalIdx - numStenLeft)];
 		}
 
 		if (threadIdx.x < numStenRight)
 		{
-			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nxDevice + threadIdx.x];
+			arrayLocal[localIdy * nxLocal + (localIdx + BLOCK_X)] = dataInput[globalIdy * nx + threadIdx.x];
 		}
 	}
 
@@ -167,12 +177,18 @@ __global__ void kernel2DXp
 	// Copy back to global
 	// -----------------------------
 
-	dataOutput[globalIdy * nxDevice + globalIdx] = sum;
+	dataOutput[globalIdy * nx + globalIdx] = sum;
 }
 
 // ---------------------------------------------------------------------
 // Function to compute kernel
 // ---------------------------------------------------------------------
+
+/*! \fun void custenCompute2DXp
+    \brief Function called by user to compute the stencil.
+    \param pt_cuSten Pointer to cuSten data type which contains all the necessary input
+	\param offload Boolean set by user to 1 if they wish to move the data back to the host after completing computation, 0 otherwise
+*/
 
 void custenCompute2DXp
 (
@@ -201,9 +217,13 @@ void custenCompute2DXp
 
 	// Preload the first block
 	cudaStreamSynchronize(pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaEventRecord(pt_cuSten->events[1], pt_cuSten->streams[1]);
+
+	// Prefetch the tile data
+	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+
+	// Record the event
+	cudaEventRecord(pt_cuSten->events[0], pt_cuSten->streams[1]);
 
 	// Temporary stream and event used for permuting
 	cudaStream_t ts;
@@ -214,25 +234,28 @@ void custenCompute2DXp
 	{
 		// Synchronise the events to ensure computation overlaps
 		cudaEventSynchronize(pt_cuSten->events[0]);
-		cudaEventSynchronize(pt_cuSten->events[1]);
 
 		// Preform the computation on the current tile
-		kernel2DXp<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(pt_cuSten->dataOutput[tile], pt_cuSten->dataInput[tile], pt_cuSten->weights, pt_cuSten->numSten, pt_cuSten->numStenLeft, pt_cuSten->numStenRight, local_nx, local_ny, pt_cuSten->BLOCK_X, pt_cuSten->nxDevice);
-		cudaEventRecord(pt_cuSten->events[0], pt_cuSten->streams[0]);
+		kernel2DXp<<<gridDim, blockDim, pt_cuSten->mem_shared, pt_cuSten->streams[0]>>>(pt_cuSten->dataOutput[tile], pt_cuSten->dataInput[tile], pt_cuSten->weights, pt_cuSten->numSten, pt_cuSten->numStenLeft, pt_cuSten->numStenRight, local_nx, local_ny, pt_cuSten->BLOCK_X, pt_cuSten->nx);
 
 		// Offload should the user want to
 		if (offload == 1)
 		{
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
-	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
+	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
 		}
 
 		// Load the next tile
     	if (tile < pt_cuSten->numTiles - 1)
     	{
+    		// Ensure the steam is free to load the data
     		cudaStreamSynchronize(pt_cuSten->streams[1]);
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nxDevice * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+
+    		// Prefetch the necessary tiles  	
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	
+			// Record the event
 			cudaEventRecord(pt_cuSten->events[1], pt_cuSten->streams[1]);
     	}
 

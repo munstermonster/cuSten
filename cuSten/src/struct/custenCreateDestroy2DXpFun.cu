@@ -17,6 +17,10 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+/*! \file custenCreateDestroy2DXpFun.cu
+    Functions to create and destroy the cuSten_t that is used to give input to the compute kernels. 
+    2D x direction, periodic, user function
+*/
 
 // ---------------------------------------------------------------------
 //  Standard Libraries and Headers
@@ -36,6 +40,23 @@
 // Function to create the struct for a 2D x direction non periodic
 // ---------------------------------------------------------------------
 
+/*! \fun __global__ void custenCreate2DXpFun
+    \brief Function to set up cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param numTiles Number of tiles to divide the data into
+	\param nx Total number of points in the x direction 
+	\param ny Total number of points in the y direction 
+	\param BLOCK_X Size of thread block in the x direction
+	\param BLOCK_Y Size of thread block in the y direction
+    \param dataOutput Pointer to data output by the function
+	\param dataInput Pointer to data input to the function    
+	\param numSten Total number of points in the stencil
+	\param numStenLeft Number of points on the left side of the stencil
+	\param numStenRight Number of points on the right side of the stencil
+	\param Number of coefficients used by the user in their function
+	\param Pointer to user function
+*/
+
 void custenCreate2DXpFun(
 	cuSten_t* pt_cuSten,
 
@@ -43,8 +64,8 @@ void custenCreate2DXpFun(
 
 	int numTiles,
 
-	int nxDevice,
-	int nyDevice,
+	int nx,
+	int ny,
 
 	int BLOCK_X,
 	int BLOCK_Y,
@@ -75,10 +96,10 @@ void custenCreate2DXpFun(
   	pt_cuSten->numTiles = numTiles;
 
   	// Set the number points in x on the device
-  	pt_cuSten->nxDevice = nxDevice;
+  	pt_cuSten->nx = nx;
 
   	// Set the number points in y on the device
-  	pt_cuSten->nyDevice = nyDevice;
+  	pt_cuSten->ny = ny;
 
   	// Number of threads in x on the device
 	pt_cuSten->BLOCK_X = BLOCK_X;
@@ -136,10 +157,10 @@ void custenCreate2DXpFun(
 	pt_cuSten->mem_shared = pt_cuSten->nxLocal * pt_cuSten->nyLocal * sizeof(double) + numCoe * sizeof(double);
 
 	// Find number of points per tile
-	pt_cuSten->nyTile = pt_cuSten->nyDevice / pt_cuSten->numTiles;	
+	pt_cuSten->nyTile = pt_cuSten->ny / pt_cuSten->numTiles;	
 
 	// Set the grid up
-    pt_cuSten->xGrid = (pt_cuSten->nxDevice % pt_cuSten->BLOCK_X == 0) ? (pt_cuSten->nxDevice / pt_cuSten->BLOCK_X) : (pt_cuSten->nxDevice / pt_cuSten->BLOCK_X + 1);
+    pt_cuSten->xGrid = (pt_cuSten->nx % pt_cuSten->BLOCK_X == 0) ? (pt_cuSten->nx / pt_cuSten->BLOCK_X) : (pt_cuSten->nx / pt_cuSten->BLOCK_X + 1);
     pt_cuSten->yGrid = (pt_cuSten->nyTile % pt_cuSten->BLOCK_Y == 0) ? (pt_cuSten->nyTile / pt_cuSten->BLOCK_Y) : (pt_cuSten->nyTile / pt_cuSten->BLOCK_Y + 1);
 
 	// Allocate the pointers for each input tile
@@ -149,7 +170,7 @@ void custenCreate2DXpFun(
 	pt_cuSten->dataOutput = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
 
 	// // Tile offset index
-	int offset = pt_cuSten->nxDevice * pt_cuSten->nyTile;
+	int offset = pt_cuSten->nx * pt_cuSten->nyTile;
 
 	// Match the pointers to the data
 	for (int tile = 0; tile < pt_cuSten->numTiles; tile++)
@@ -168,8 +189,36 @@ void custenCreate2DXpFun(
 }
 
 // ---------------------------------------------------------------------
-// Function to destroy the struct for a 2D x direction non periodic
+// Swap pointers
 // ---------------------------------------------------------------------
+
+/*! \fun __global__ void custenSwap2DXpFun
+    \brief Function to swap pointers necessary for timestepping
+    \param pt_cuSten Pointer to cuSten type provided by user
+	\param dataInput Pointer to data input to the on the next compute
+*/
+
+void custenSwap2DXpFun(
+	cuSten_t* pt_cuSten,
+
+	double* dataInput
+) 
+{
+	for (int tile = 0; tile < pt_cuSten->numTiles; tile++)
+	{	
+		// Swap the input and output data
+		std::swap(pt_cuSten->dataInput[tile], pt_cuSten->dataOutput[tile]);
+	}
+}
+
+// ---------------------------------------------------------------------
+// Function to destroy the struct
+// ---------------------------------------------------------------------
+
+/*! \fun __global__ void custenDestroy2DXpFun
+    \brief Function to destroy data associated with cuSten_t
+    \param pt_cuSten Pointer to cuSten type provided by user
+*/
 
 void custenDestroy2DXpFun(
 	cuSten_t* pt_cuSten

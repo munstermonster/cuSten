@@ -1,6 +1,5 @@
 // Andrew Gloster
 // May 2018
-// Functions to catch errors in the cuSten library
 
 //   Copyright 2018 Andrew Gloster
 
@@ -16,6 +15,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+/*! \file error.cu
+// Functions to catch errors in the cuSten library
+*/
 
 // ---------------------------------------------------------------------
 //  Standard Libraries and Headers
@@ -33,7 +35,12 @@
 //  Error checking function
 // ---------------------------------------------------------------------
 
-void checkError (const char* action) 
+/*! \fun __global__ void checkError
+	\brief Function responds to cudaErrors thrown
+    \param action Pointer to string input by programmer
+*/
+
+void checkError(const char* action) 
 {
   
   cudaError_t error;

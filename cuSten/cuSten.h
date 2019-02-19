@@ -1,6 +1,5 @@
 // Andrew Gloster
 // May 2018
-// Main header for cuSten library
 
 //   Copyright 2018 Andrew Gloster
 
@@ -16,6 +15,10 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+/**
+ * @file cuSten.h
+ * Main header for cuSten library
+ */
 
 // ---------------------------------------------------------------------
 // Define Header
@@ -34,3 +37,14 @@
 #include "src/util/util.h"
 
 #endif
+
+/*! \mainpage cuSten - CUDA Finite Difference Library
+ *
+ * \section intro_sec Introduction
+ *
+ * This is the documentation for the cuSten library. For compiling please see the README in the top level directory.
+ *
+ * All details of the library API can be found in src/struct/cuSten_struct_functions.h and src/kernels/stencil_kernels.h
+ *
+ * For usage examples please see either the examples folder or the cuCahnPentADI, both of which are supplied when downloading this repository from https://github.com/munstermonster/cuSten
+ */

@@ -39,12 +39,21 @@
 #define BLOCK_X 16
 #define BLOCK_Y 32
 
-// Data -- Coefficients -- Current node index -- Jump -- Points in x -- Points in y
-typedef double (*devArg1XY)(double*, double*, int, int, int, int);
-
 // ---------------------------------------------------------------------
 // Function Declaration
 // ---------------------------------------------------------------------
+
+/*! \var typedef double (*devArg1X)(double*, double*, int);
+    \brief The function pointer containing the user defined function to be applied <br>
+    Input 1: The pointer to input data to the function <br>
+    Input 2: The pointer to the coefficients provided by the user <br>
+    Input 3: The current index position (centre of the stencil to be applied) <br>
+	Input 4: Value to be used to jump between rows. (j + 1, j - 1 etc.) <br>
+	Input 5: Size of stencil in x direction <br>
+	Input 6: Size of stencil in y direction
+*/
+
+typedef double (*devArg1XY)(double*, double*, int, int, int, int);
 
 __inline__ __device__ double centralDiff(double* data, double* coe, int loc, int jump, int nx, int ny)
 {	
@@ -161,10 +170,6 @@ int main()
 	// Set up device
 	// -----------------------------
 
-	// Number of points per device
-	int nxDevice = nx;
-	int nyDevice = ny;
-
 	// Set up the compute device structs
 	cuSten_t xyDirCompute;
 
@@ -183,8 +188,8 @@ int main()
 
 		numTiles,
 
-		nxDevice,
-		nyDevice,
+		nx,
+		ny,
 
 		BLOCK_X,
 		BLOCK_Y,

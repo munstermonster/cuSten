@@ -19,6 +19,8 @@ The extra 'fun' seen on some files are examples of how the user can use a functi
 # Compiling
 Use make in cuSten/ directory followed by examples/ directory. In order to use the library in your own code simply include the cuSten.h header and link to the static library stored in cuSten/lib. The compiled examples are found in /examples/bin after compiling.
 
+In addition to this a sample Cahn-Hilliard solver can be compiled by running the makefile in cuPentCahnADI. This requires the HDF5 library to be installed. Several python scripts are also included to analyise the output.
+
 # Where is cuSten used
 cuSten is currently used in the following academic papers:
 
