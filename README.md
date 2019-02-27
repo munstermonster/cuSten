@@ -21,10 +21,14 @@ Use make in cuSten/ directory followed by examples/ directory. In order to use t
 
 In addition to this a sample Cahn-Hilliard solver can be compiled by running the makefile in cuPentCahnADI. This requires the HDF5 library to be installed. Several python scripts are also included to analyise the output.
 
+# Documentation
+Run the command make doc in the cuSten directory.
+
 # Where is cuSten used
 cuSten is currently used in the following academic papers:
 
 - cuPentBatch -- A batched pentadiagonal solver for NVIDIA GPUs (preprint: https://arxiv.org/abs/1807.07382)
+- cuSten -- CUDA Finite Difference and Stencil Library (preprint: https://arxiv.org/abs/1902.09931)
 
 
 
