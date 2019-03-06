@@ -21,6 +21,8 @@ Use make in cuSten/ directory followed by examples/ directory. In order to use t
 
 In addition to this a sample Cahn-Hilliard solver can be compiled by running the makefile in cuPentCahnADI. This requires the HDF5 library to be installed. Several python scripts are also included to analyise the output.
 
+The Makefiles used in this project assume --gpu-architecture=sm_61, this may need to be changed appropiately for other generations of GPUs, this is user dependant so we reccomend checking the correct setting of this parameter for your system.
+
 # Documentation
 Run the command make doc in the cuSten directory.
 
