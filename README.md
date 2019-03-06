@@ -17,11 +17,11 @@ periodicity = Apply the stencil periodically to the data or not, p for periodic,
 The extra 'fun' seen on some files are examples of how the user can use a function pointer to implement a broader range of operations on their data, such as raising to a power, source terms etc.
 
 # Compiling
-Use make in cuSten/ directory followed by examples/ directory. In order to use the library in your own code simply include the cuSten.h header and link to the static library stored in cuSten/lib. The compiled examples are found in /examples/bin after compiling.
+Use the Makefile in the cuSten/ directory followed by the examples/ directory. In order to use the library in your own code simply include the cuSten.h header and link to the static library stored in cuSten/lib. The compiled examples are found in /examples/bin after compiling.
 
-In addition to this a sample Cahn-Hilliard solver can be compiled by running the makefile in cuPentCahnADI. This requires the HDF5 library to be installed. Several python scripts are also included to analyise the output.
+In addition to this a sample Cahn-Hilliard solver can be compiled by running the Makefile in cuPentCahnADI. This requires the HDF5 library to be installed and linked to the correct path in the Makefile. Several python scripts are also included to analyise the output.
 
-The Makefiles used in this project assume --gpu-architecture=sm_61, this may need to be changed appropiately for other generations of GPUs, this is user dependant so we reccomend checking the correct setting of this parameter for your system.
+The Makefiles used in this project assume the CUDA compiler nvcc is installed and the parameter --gpu-architecture=sm_61 is set, this may need to be changed appropiately for other generations of NVIDIA GPUs, this is user dependant so we reccomend checking the correct setting of this parameter for your system.
 
 # Documentation
 Run the command make doc in the cuSten directory.
