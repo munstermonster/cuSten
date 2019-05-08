@@ -48,21 +48,23 @@
 */
 
 // Notation from Level Set Methods - Fedkiw
-__device__ double wenoSten
+
+template <typename elemType>
+__device__ elemType wenoSten
 (
-	double v1,
-	double v2,
-	double v3,
-	double v4,
-	double v5
+	elemType v1,
+	elemType v2,
+	elemType v3,
+	elemType v4,
+	elemType v5
 )
 {
-	double epsilon = 1e-06;
-	double phi1, phi2, phi3;
-	double s1, s2, s3;
-	double alpha1, alpha2, alpha3;
-	double denom;
-	double w1, w2, w3;
+	elemType epsilon = 1e-06;
+	elemType phi1, phi2, phi3;
+	elemType s1, s2, s3;
+	elemType alpha1, alpha2, alpha3;
+	elemType denom;
+	elemType w1, w2, w3;
 
 	phi1 = (1.0 / 3.0) * v1 - (7.0 / 6.0) * v2 + (11.0 / 6.0) * v3;
 	phi2 = - (1.0 / 6.0) * v2 + (5.0 / 6.0) * v3 + (1.0 / 3.0) * v4;
@@ -114,20 +116,21 @@ __device__ double wenoSten
 	\param nyTile Number of y direction points on tile
 */
 
+template <typename elemType>
 __global__ void kernel2DXYWENOADVp
 (
-	double* dataOutput,  				
+	elemType* dataOutput,  				
 
-	double* dataInput,					
+	elemType* dataInput,					
 
-	double* uVel, 						
-	double* vVel,						
+	elemType* uVel, 						
+	elemType* vVel,						
 
-	double* boundaryTop, 				
-	double* boundaryBottom,				
+	elemType* boundaryTop, 				
+	elemType* boundaryBottom,				
 
-	const double coeDx,					
-	const double coeDy,					
+	const elemType coeDx,					
+	const elemType coeDy,					
 
 	const int numSten,					
 
@@ -155,14 +158,14 @@ __global__ void kernel2DXYWENOADVp
 
 	extern __shared__ int memory[];
 
-	double* arrayLocal = (double*)&memory;
+	elemType* arrayLocal = (elemType*)&memory;
 
 	// -----------------------------
 	// Set the indexing
 	// -----------------------------
 
 	// True matrix index
-    int globalIdx = blockDim.x * blockIdx.x + threadIdx.x;
+	int globalIdx = blockDim.x * blockIdx.x + threadIdx.x;
 	int globalIdy = blockDim.y * blockIdx.y + threadIdx.y;
 
 	// Local matrix index
@@ -275,10 +278,10 @@ __global__ void kernel2DXYWENOADVp
 	// -----------------------------
 
 	// Inputs
-	double v1, v2, v3, v4, v5;
+	elemType v1, v2, v3, v4, v5;
 
 	// Output
-	double Fx, Fy;
+	elemType Fx, Fy;
 
 	// X direction fluxes
 	__syncthreads();
@@ -406,10 +409,10 @@ __global__ void kernel2DXYWENOADVp
 	\param offload Set to HOST to move data back to CPU or DEVICE to keep on the GPU
 */
 
+template <typename elemType>
 void cuStenCompute2DXYWENOADVp
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 )
 {	
@@ -428,14 +431,14 @@ void cuStenCompute2DXYWENOADVp
 	cudaStreamSynchronize(pt_cuSten->streams[1]);
 
 	// Prefetch the tile data
-	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->uVel[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->vVel[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->uVel[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->vVel[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 	// Prefetch the boundary data
-	cudaMemPrefetchAsync(pt_cuSten->boundaryTop[0], pt_cuSten->numBoundaryTop * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[0], pt_cuSten->numBoundaryTop * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->boundaryTop[0], pt_cuSten->numBoundaryTop * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[0], pt_cuSten->numBoundaryTop * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 	// Record the event
 	cudaEventRecord(pt_cuSten->events[0], pt_cuSten->streams[1]);
@@ -496,14 +499,14 @@ void cuStenCompute2DXYWENOADVp
     		cudaStreamSynchronize(pt_cuSten->streams[1]);
 
     		// Prefetch the necessary tiles
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-			cudaMemPrefetchAsync(pt_cuSten->uVel[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-			cudaMemPrefetchAsync(pt_cuSten->vVel[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+			cudaMemPrefetchAsync(pt_cuSten->uVel[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+			cudaMemPrefetchAsync(pt_cuSten->vVel[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 		 	// Prefetch the next boundaries
-		 	cudaMemPrefetchAsync(pt_cuSten->boundaryTop[tile + 1], pt_cuSten->numBoundaryTop * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-			cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[tile + 1], pt_cuSten->numBoundaryBottom * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+		 	cudaMemPrefetchAsync(pt_cuSten->boundaryTop[tile + 1], pt_cuSten->numBoundaryTop * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+			cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[tile + 1], pt_cuSten->numBoundaryBottom * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 			// Record the event
 			cudaEventRecord(pt_cuSten->events[1], pt_cuSten->streams[1]);
@@ -512,12 +515,12 @@ void cuStenCompute2DXYWENOADVp
 		// Offload the previous set of tiles, this is to ensure we don't get page faults
 		if (offload == 1 && tile > 0)
 		{
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-			cudaMemPrefetchAsync(pt_cuSten->uVel[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-			cudaMemPrefetchAsync(pt_cuSten->vVel[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-			cudaMemPrefetchAsync(pt_cuSten->boundaryTop[tile - 1], pt_cuSten->numBoundaryTop * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-			cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[tile - 1],  pt_cuSten->numBoundaryBottom * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+			cudaMemPrefetchAsync(pt_cuSten->uVel[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+			cudaMemPrefetchAsync(pt_cuSten->vVel[tile - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+			cudaMemPrefetchAsync(pt_cuSten->boundaryTop[tile - 1], pt_cuSten->numBoundaryTop * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+			cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[tile - 1],  pt_cuSten->numBoundaryBottom * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
 		}
 
     	// Permute streams
@@ -535,14 +538,124 @@ void cuStenCompute2DXYWENOADVp
     // Offload the final set
 	if (offload == 1)
 	{
-		cudaMemPrefetchAsync(pt_cuSten->dataOutput[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-		cudaMemPrefetchAsync(pt_cuSten->dataInput[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-		cudaMemPrefetchAsync(pt_cuSten->uVel[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-		cudaMemPrefetchAsync(pt_cuSten->vVel[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-		cudaMemPrefetchAsync(pt_cuSten->boundaryTop[pt_cuSten->numTiles - 1], pt_cuSten->numBoundaryTop * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
-		cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[pt_cuSten->numTiles - 1],  pt_cuSten->numBoundaryBottom * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+		cudaMemPrefetchAsync(pt_cuSten->dataOutput[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+		cudaMemPrefetchAsync(pt_cuSten->dataInput[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+		cudaMemPrefetchAsync(pt_cuSten->uVel[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+		cudaMemPrefetchAsync(pt_cuSten->vVel[pt_cuSten->numTiles - 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+		cudaMemPrefetchAsync(pt_cuSten->boundaryTop[pt_cuSten->numTiles - 1], pt_cuSten->numBoundaryTop * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
+		cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[pt_cuSten->numTiles - 1],  pt_cuSten->numBoundaryBottom * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[pt_cuSten->numStreams - 1]);
 	}
 }
+
+// ---------------------------------------------------------------------
+// Explicit instantiation
+// ---------------------------------------------------------------------
+
+template
+__device__ double wenoSten<double>
+(
+	double,
+	double,
+	double,
+	double,
+	double
+);
+
+template
+__global__ void kernel2DXYWENOADVp<double>
+(
+	double*,  				
+
+	double*,					
+
+	double*, 						
+	double*,						
+
+	double*, 				
+	double*,				
+
+	const double,					
+	const double,					
+
+	const int,					
+
+	const int,				
+	const int,
+	const int,
+
+	const int,
+	const int,
+	const int,
+
+	const int,
+	const int,
+
+	const int,
+	const int,
+
+	const int,
+	const int
+);
+
+template
+void cuStenCompute2DXYWENOADVp<double>
+(
+	cuSten_t<double>*,
+	bool
+);
+
+template
+__device__ float wenoSten<float>
+(
+	float,
+	float,
+	float,
+	float,
+	float
+);
+
+template
+__global__ void kernel2DXYWENOADVp<float>
+(
+	float*,  				
+
+	float*,					
+
+	float*, 						
+	float*,						
+
+	float*, 				
+	float*,				
+
+	const float,					
+	const float,					
+
+	const int,					
+
+	const int,				
+	const int,
+	const int,
+
+	const int,
+	const int,
+	const int,
+
+	const int,
+	const int,
+
+	const int,
+	const int,
+
+	const int,
+	const int
+);
+
+template
+void cuStenCompute2DXYWENOADVp<float>
+(
+	cuSten_t<float>*,
+	bool
+);
 
 // ---------------------------------------------------------------------
 // End of file

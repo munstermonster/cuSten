@@ -37,14 +37,18 @@
 // Function pointer definition
 // ---------------------------------------------------------------------
 
-/*! typedef double (*devArg1X)(double*, double*, int);
+/*! typedef elemType (*devArg1X)(elemType*, elemType*, int);
     \brief The function pointer containing the user defined function to be applied <br>
     Input 1: The pointer to input data to the function <br>
     Input 2: The pointer to the coefficients provided by the user <br>
     Input 3: The current index position (centre of the stencil to be applied)
 */
 
-typedef double (*devArg1X)(double*, double*, int);
+template <typename elemType>
+struct templateFunc
+{
+	typedef elemType (*devArg1X)(elemType*, elemType*, int);
+};
 
 // ---------------------------------------------------------------------
 //  Kernel Definition
@@ -65,12 +69,13 @@ typedef double (*devArg1X)(double*, double*, int);
 	\param nx Total number of points in the x direction
 */
 
+template <typename elemType>
 __global__ void kernel2DXpFun
 (
-	double* dataOutput,  					
-	double* dataInput,					
-	const double* coe,							
-	const double* func,					
+	elemType* dataOutput,  					
+	elemType* dataInput,					
+	const elemType* coe,							
+	const elemType* func,					
 	const int numStenLeft,				
 	const int numStenRight,				
 	const int numCoe,					
@@ -83,8 +88,8 @@ __global__ void kernel2DXpFun
 	// Allocate the shared memory
 	extern __shared__ int memory[];
 
-	double* arrayLocal = (double*)&memory;
-	double* coeLocal = (double*)&arrayLocal[nxLocal * nyLocal];
+	elemType* arrayLocal = (elemType*)&memory;
+	elemType* coeLocal = (elemType*)&arrayLocal[nxLocal * nyLocal];
 
 	// Move the weigths into shared memory
 	#pragma unroll
@@ -94,7 +99,7 @@ __global__ void kernel2DXpFun
 	}
 
 	// True matrix index
-    int globalIdx = blockDim.x * blockIdx.x + threadIdx.x;
+	int globalIdx = blockDim.x * blockIdx.x + threadIdx.x;
 	int globalIdy = blockDim.y * blockIdx.y + threadIdx.y;
 
 	// Local matrix index
@@ -156,7 +161,7 @@ __global__ void kernel2DXpFun
 
 	stenSet = localIdy * nxLocal + localIdx;
 
-	dataOutput[globalIdy * nx + globalIdx] = ((devArg1X)func)(arrayLocal, coeLocal, stenSet);
+	dataOutput[globalIdy * nx + globalIdx] = ((typename templateFunc<elemType>::devArg1X)func)(arrayLocal, coeLocal, stenSet);
 }
 
 // ---------------------------------------------------------------------
@@ -169,10 +174,10 @@ __global__ void kernel2DXpFun
 	\param offload Set to HOST to move data back to CPU or DEVICE to keep on the GPU
 */
 
-void cuSenCompute2DXpFun
+template <typename elemType>
+void cuStenCompute2DXpFun
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 )
 {	
@@ -191,8 +196,8 @@ void cuSenCompute2DXpFun
 	cudaStreamSynchronize(pt_cuSten->streams[1]);
 
 	// Prefetch the tile data	
-	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 	// Record the event
 	cudaEventRecord(pt_cuSten->events[0], pt_cuSten->streams[1]);
@@ -227,8 +232,8 @@ void cuSenCompute2DXpFun
 		// Offload should the user want to
 		if (offload == 1)
 		{
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
-	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[0]);
+	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[0]);
 		}
 
 		// Load the next tile
@@ -238,8 +243,8 @@ void cuSenCompute2DXpFun
     		cudaStreamSynchronize(pt_cuSten->streams[1]);
 
       		// Prefetch the necessary tiles  		
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 			
 			// Record the event
 			cudaEventRecord(pt_cuSten->events[1], pt_cuSten->streams[1]);
@@ -257,6 +262,56 @@ void cuSenCompute2DXpFun
 		te = pt_cuSten->events[0]; pt_cuSten->events[0] = pt_cuSten->events[1]; pt_cuSten->events[1] = te; 
     }
 }
+
+// ---------------------------------------------------------------------
+// Explicit instantiation
+// ---------------------------------------------------------------------
+
+template
+__global__ void kernel2DXpFun<double>
+(
+	double*,  					
+	double*,					
+	const double*,							
+	const double*,					
+	const int,				
+	const int,				
+	const int,					
+	const int,					
+	const int,					
+	const int,					
+	const int						
+);
+
+template
+void cuStenCompute2DXpFun<double>
+(
+	cuSten_t<double>*,
+	bool
+);
+
+template
+__global__ void kernel2DXpFun<float>
+(
+	float*,  					
+	float*,					
+	const float*,							
+	const float*,					
+	const int,				
+	const int,				
+	const int,					
+	const int,					
+	const int,					
+	const int,					
+	const int						
+);
+
+template
+void cuStenCompute2DXpFun<float>
+(
+	cuSten_t<float>*,
+	bool
+);
 
 // ---------------------------------------------------------------------
 // End of file

@@ -54,21 +54,21 @@
 	\param dataInput Pointer to data input to the function    
 */
 
-void cuStenCreate2DXYWENOADVp
-(
-	cuSten_t* pt_cuSten,
+template <typename elemType>
+void cuStenCreate2DXYWENOADVp(
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double dx,
-	double dy,
-	double* u,
-	double* v,
-	double* dataOutput,
-	double* dataInput
+	elemType dx,
+	elemType dy,
+	elemType* u,
+	elemType* v,
+	elemType* dataOutput,
+	elemType* dataInput
 ) 
 {
 	// Buffer used for error checking
@@ -153,7 +153,7 @@ void cuStenCreate2DXYWENOADVp
 	pt_cuSten->nyLocal = pt_cuSten->BLOCK_Y + pt_cuSten->numStenTop + pt_cuSten->numStenBottom;
 
 	// Set the amount of shared memory required
-	pt_cuSten->mem_shared = (pt_cuSten->nxLocal * pt_cuSten->nyLocal) * sizeof(double) + pt_cuSten->numSten * sizeof(double);
+	pt_cuSten->mem_shared = (pt_cuSten->nxLocal * pt_cuSten->nyLocal) * sizeof(elemType) + pt_cuSten->numSten * sizeof(elemType);
 
 	// Find number of points per tile
 	pt_cuSten->nyTile = pt_cuSten->ny / pt_cuSten->numTiles;	
@@ -163,16 +163,16 @@ void cuStenCreate2DXYWENOADVp
     pt_cuSten->yGrid = (pt_cuSten->nyTile % pt_cuSten->BLOCK_Y == 0) ? (pt_cuSten->nyTile / pt_cuSten->BLOCK_Y) : (pt_cuSten->nyTile / pt_cuSten->BLOCK_Y + 1);
 
 	// Allocate the pointers for each input tile
-	pt_cuSten->dataInput = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->dataInput = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// Allocate the pointers for each output tile
-	pt_cuSten->dataOutput = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->dataOutput = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// Allocate the pointers for each input x velocity tile
-	pt_cuSten->uVel = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->uVel = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// Allocate the pointers for each input v velocity tile
-	pt_cuSten->vVel = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->vVel = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// // Tile offset index
 	int offset = pt_cuSten->nx * pt_cuSten->nyTile;
@@ -199,10 +199,10 @@ void cuStenCreate2DXYWENOADVp
 	// 3 or greater
 
 	// Allocate top boundary memory
-	pt_cuSten->boundaryTop = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->boundaryTop = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// Allocate bottom boundary memory
-	pt_cuSten->boundaryBottom = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->boundaryBottom = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	switch(pt_cuSten->numTiles)
 	{
@@ -263,10 +263,10 @@ void cuStenCreate2DXYWENOADVp
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXYWENOADVp(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 ) 
 {
 	for (int tile = 0; tile < pt_cuSten->numTiles; tile++)
@@ -322,9 +322,10 @@ void cuStenSwap2DXYWENOADVp(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXYWENOADVp
 (
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 ) 
 {
 	// Buffer used for error checking
@@ -371,6 +372,65 @@ void cuStenDestroy2DXYWENOADVp
 	free(pt_cuSten->boundaryBottom);
 }
 
+// ---------------------------------------------------------------------
+// Explicit instantiation
+// ---------------------------------------------------------------------
+
+template
+void cuStenCreate2DXYWENOADVp<double>(
+	cuSten_t<double>*,
+	int,
+	int,
+	int,
+	int,
+	int,
+	int,
+	double,
+	double,
+	double*,
+	double*,
+	double*,
+	double*
+);
+
+template
+void cuStenSwap2DXYWENOADVp<double>(
+	cuSten_t<double>*,
+	double*
+);
+
+template
+void cuStenDestroy2DXYWENOADVp<double>(
+	cuSten_t<double>*
+);
+
+template
+void cuStenCreate2DXYWENOADVp<float>(
+	cuSten_t<float>*,
+	int,
+	int,
+	int,
+	int,
+	int,
+	int,
+	float,
+	float,
+	float*,
+	float*,
+	float*,
+	float*
+);
+
+template
+void cuStenSwap2DXYWENOADVp<float>(
+	cuSten_t<float>*,
+	float*
+);
+
+template
+void cuStenDestroy2DXYWENOADVp<float>(
+	cuSten_t<float>*
+);
 
 // ---------------------------------------------------------------------
 // End of file

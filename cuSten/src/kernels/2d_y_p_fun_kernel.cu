@@ -38,7 +38,7 @@
 // Function pointer definition
 // ---------------------------------------------------------------------
 
-/*! typedef double (*devArg1Y)(double*, double*, int, int);
+/*! typedef elemType (*devArg1Y)(elemType*, elemType*, int, int);
     \brief The function pointer containing the user defined function to be applied <br>
     Input 1: The pointer to input data to the function <br>
     Input 2: The pointer to the coefficients provided by the user <br>
@@ -46,7 +46,11 @@
 	Input 4: Value to be used to jump between rows. (j + 1, j - 1 etc.)
 */
 
-typedef double (*devArg1Y)(double*, double*, int, int);
+template <typename elemType>
+struct templateFunc
+{
+	typedef elemType (*devArg1Y)(elemType*, elemType*, int, int);
+};
 
 // ---------------------------------------------------------------------
 //  Kernel Definition
@@ -70,15 +74,16 @@ typedef double (*devArg1Y)(double*, double*, int, int);
 	\param nyTile Number of y direction points on tile
 */
 
+template <typename elemType>
 __global__ void kernel2DYpFun
 (
 
-	double* dataNew,  					
-	double* dataOld,					
-	double* boundaryTop, 				
-	double* boundaryBottom,				
-	double* func,
-	const double* coe,       			
+	elemType* dataNew,  					
+	elemType* dataOld,					
+	elemType* boundaryTop, 				
+	elemType* boundaryBottom,				
+	elemType* func,
+	const elemType* coe,       			
 	const int numCoe,					
 	const int numStenTop,				
 	const int numStenBottom,			
@@ -92,8 +97,8 @@ __global__ void kernel2DYpFun
 	// Allocate the shared memory
 	extern __shared__ int memory[];
 
-	double* arrayLocal = (double*)&memory;
-	double* coeLocal = (double*)&arrayLocal[nxLocal * nyLocal];
+	elemType* arrayLocal = (elemType*)&memory;
+	elemType* coeLocal = (elemType*)&arrayLocal[nxLocal * nyLocal];
 
 	// Move the weigths into shared memory
 	#pragma unroll
@@ -103,7 +108,7 @@ __global__ void kernel2DYpFun
 	}
 
 	// True matrix index
-    int globalIdx = blockDim.x * blockIdx.x + threadIdx.x;
+	int globalIdx = blockDim.x * blockIdx.x + threadIdx.x;
 	int globalIdy = blockDim.y * blockIdx.y + threadIdx.y;
 
 	// Local matrix index
@@ -111,7 +116,7 @@ __global__ void kernel2DYpFun
 	int localIdy = threadIdx.y + numStenTop;
 
 	// Local sum variable
-	double sum = 0.0;
+	elemType sum = 0.0;
 
 	// Set index for summing stencil
 	int stenSet;
@@ -135,7 +140,7 @@ __global__ void kernel2DYpFun
 
 		stenSet = localIdy * nxLocal + localIdx;
 
-		sum = ((devArg1Y)func)(arrayLocal, coeLocal, stenSet, nxLocal);
+		sum = ((typename templateFunc<elemType>::devArg1Y)func)(arrayLocal, coeLocal, stenSet, nxLocal);
 
 		__syncthreads();
 
@@ -161,7 +166,7 @@ __global__ void kernel2DYpFun
 
 		stenSet = localIdy * nxLocal + localIdx;
 
-		sum = ((devArg1Y)func)(arrayLocal, coeLocal, stenSet, nxLocal);
+		sum = ((typename templateFunc<elemType>::devArg1Y)func)(arrayLocal, coeLocal, stenSet, nxLocal);
 		
 		__syncthreads();
 
@@ -187,7 +192,7 @@ __global__ void kernel2DYpFun
 
 		stenSet = localIdy * nxLocal + localIdx;
 
-		sum = ((devArg1Y)func)(arrayLocal, coeLocal, stenSet, nxLocal);
+		sum = ((typename templateFunc<elemType>::devArg1Y)func)(arrayLocal, coeLocal, stenSet, nxLocal);
 
 		__syncthreads();
 
@@ -205,10 +210,10 @@ __global__ void kernel2DYpFun
 	\param offload Set to HOST to move data back to CPU or DEVICE to keep on the GPU
 */
 
+template <typename elemType>
 void cuStenCompute2DYpFun
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 )
 {	
@@ -224,18 +229,18 @@ void cuStenCompute2DYpFun
 	dim3 gridDim(pt_cuSten->xGrid, pt_cuSten->yGrid);
 
 	// Load the weights
-	cudaMemPrefetchAsync(pt_cuSten->coe, pt_cuSten->numCoe * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->coe, pt_cuSten->numCoe * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 	// Ensure the current stream is free
 	cudaStreamSynchronize(pt_cuSten->streams[1]);
 
 	// Prefetch the tile data
-	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 	// Prefetch the boundary data
-	cudaMemPrefetchAsync(pt_cuSten->boundaryTop[0], pt_cuSten->numBoundaryTop * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[0], pt_cuSten->numBoundaryTop * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->boundaryTop[0], pt_cuSten->numBoundaryTop * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[0], pt_cuSten->numBoundaryTop * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 	// Record the event
 	cudaEventRecord(pt_cuSten->events[0], pt_cuSten->streams[1]);
@@ -259,8 +264,8 @@ void cuStenCompute2DYpFun
 		// Offload should the user want to
 		if (offload == 1)
 		{
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
-	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[0]);
+	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[0]);
 		}
 
 		// Load the next set of data
@@ -270,12 +275,12 @@ void cuStenCompute2DYpFun
     		cudaStreamSynchronize(pt_cuSten->streams[1]);
 
     		// Prefetch the tiles
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 		 	// Prefetch the next boundaries
-		 	cudaMemPrefetchAsync(pt_cuSten->boundaryTop[tile + 1], pt_cuSten->numBoundaryTop * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-			cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[tile + 1], pt_cuSten->numBoundaryBottom * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+		 	cudaMemPrefetchAsync(pt_cuSten->boundaryTop[tile + 1], pt_cuSten->numBoundaryTop * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+			cudaMemPrefetchAsync(pt_cuSten->boundaryBottom[tile + 1], pt_cuSten->numBoundaryBottom * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 			// Record the event
 			cudaEventRecord(pt_cuSten->events[1], pt_cuSten->streams[1]);
@@ -293,6 +298,64 @@ void cuStenCompute2DYpFun
 		te = pt_cuSten->events[0]; pt_cuSten->events[0] = pt_cuSten->events[1]; pt_cuSten->events[1] = te; 
     }
 }
+
+// ---------------------------------------------------------------------
+// Explicit instantiation
+// ---------------------------------------------------------------------
+
+template
+__global__ void kernel2DYpFun<double>
+(
+
+	double*,  					
+	double*,					
+	double*, 				
+	double*,				
+	double*,
+	const double*,       			
+	const int,					
+	const int,				
+	const int,			
+	const int,					
+	const int,					
+	const int,					
+	const int,					
+	const int
+);
+
+template
+void cuStenCompute2DYpFun<double>
+(
+	cuSten_t<double>*,
+	bool
+);
+
+template
+__global__ void kernel2DYpFun<float>
+(
+
+	float*,  					
+	float*,					
+	float*, 				
+	float*,				
+	float*,
+	const float*,       			
+	const int,					
+	const int,				
+	const int,			
+	const int,					
+	const int,					
+	const int,					
+	const int,					
+	const int
+);
+
+template
+void cuStenCompute2DYpFun<float>
+(
+	cuSten_t<float>*,
+	bool
+);
 
 // ---------------------------------------------------------------------
 // End of file

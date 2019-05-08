@@ -55,22 +55,23 @@
 	\param Pointer to user function
 */
 
+template <typename elemType>
 void cuStenCreate2DXnpFun(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dateOutput,
-	double* dateInput,
-	double* coe,
+	elemType* dateOutput,
+	elemType* dateInput,
+	elemType* coe,
 	int numSten,
 	int numStenLeft,
 	int numStenRight,
 	int numCoe,
-	double* func
+	elemType* func
 ) 
 {
 	// Buffer used for error checking
@@ -144,7 +145,7 @@ void cuStenCreate2DXnpFun(
 	pt_cuSten->nyLocal = pt_cuSten->BLOCK_Y;
 
 	// Set the amount of shared memory required
-	pt_cuSten->mem_shared = pt_cuSten->nxLocal * pt_cuSten->nyLocal * sizeof(double) + numCoe * sizeof(double);
+	pt_cuSten->mem_shared = pt_cuSten->nxLocal * pt_cuSten->nyLocal * sizeof(elemType) + numCoe * sizeof(elemType);
 
 	// Find number of points per tile
 	pt_cuSten->nx = pt_cuSten->nx;
@@ -157,10 +158,10 @@ void cuStenCreate2DXnpFun(
     pt_cuSten->yGrid = (pt_cuSten->nyTile % pt_cuSten->BLOCK_Y == 0) ? (pt_cuSten->nyTile / pt_cuSten->BLOCK_Y) : (pt_cuSten->nyTile / pt_cuSten->BLOCK_Y + 1);
 
 	// Allocate the pointers for each input tile
-	pt_cuSten->dataInput = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->dataInput = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// Allocate the pointers for each output tile
-	pt_cuSten->dataOutput = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->dataOutput = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// Tile offset index
 	int offset = pt_cuSten->nx * pt_cuSten->nyTile;
@@ -190,10 +191,10 @@ void cuStenCreate2DXnpFun(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXnpFun(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 ) 
 {
 	for (int tile = 0; tile < pt_cuSten->numTiles; tile++)
@@ -212,8 +213,9 @@ void cuStenSwap2DXnpFun(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXnpFun(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 ) 
 {
 	// Buffer used for error checking
@@ -253,6 +255,69 @@ void cuStenDestroy2DXnpFun(
 	free(pt_cuSten->dataOutput);
 }
 
+// ---------------------------------------------------------------------
+// Explicit instantiation
+// ---------------------------------------------------------------------
+
+template
+void cuStenCreate2DXnpFun<double>(
+	cuSten_t<double>*,
+	int,
+	int,
+	int,
+	int,
+	int,
+	int,
+	double*,
+	double*,
+	double*,
+	int,
+	int,
+	int,
+	int,
+	double*
+);
+
+template
+void cuStenSwap2DXnpFun<double>(
+	cuSten_t<double>*,
+	double* dataInput
+);
+
+template
+void cuStenDestroy2DXnpFun<double>(
+	cuSten_t<double>*
+);
+
+template
+void cuStenCreate2DXnpFun<float>(
+	cuSten_t<float>*,
+	int,
+	int,
+	int,
+	int,
+	int,
+	int,
+	float*,
+	float*,
+	float*,
+	int,
+	int,
+	int,
+	int,
+	float*
+);
+
+template
+void cuStenSwap2DXnpFun<float>(
+	cuSten_t<float>*,
+	float* dataInput
+);
+
+template
+void cuStenDestroy2DXnpFun<float>(
+	cuSten_t<float>*
+);
 
 // ---------------------------------------------------------------------
 // End of file

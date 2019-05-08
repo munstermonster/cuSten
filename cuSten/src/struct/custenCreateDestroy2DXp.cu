@@ -54,17 +54,18 @@
 	\param numStenRight Number of points on the right side of the stencil
 */
 
+template <typename elemType>
 void cuStenCreate2DXp(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dataNew,
-	double* dataOld,
-	double* weights,
+	elemType* dataNew,
+	elemType* dataOld,
+	elemType* weights,
 	int numSten,
 	int numStenLeft,
 	int numStenRight
@@ -131,7 +132,7 @@ void cuStenCreate2DXp(
 	pt_cuSten->numStenRight = numStenRight;
 
 	// Set the amount of shared memory required
-	pt_cuSten->mem_shared = (pt_cuSten->BLOCK_Y * pt_cuSten->BLOCK_X + pt_cuSten->BLOCK_Y * (pt_cuSten->numStenLeft + pt_cuSten->numStenRight)) * sizeof(double) + pt_cuSten->numSten * sizeof(double);
+	pt_cuSten->mem_shared = (pt_cuSten->BLOCK_Y * pt_cuSten->BLOCK_X + pt_cuSten->BLOCK_Y * (pt_cuSten->numStenLeft + pt_cuSten->numStenRight)) * sizeof(elemType) + pt_cuSten->numSten * sizeof(elemType);
 
 	// Find number of points per tile
 	pt_cuSten->nx = pt_cuSten->nx;
@@ -147,10 +148,10 @@ void cuStenCreate2DXp(
 	pt_cuSten->weights = weights;
 
 	// Allocate the pointers for each input tile
-	pt_cuSten->dataInput = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->dataInput = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// Allocate the pointers for each output tile
-	pt_cuSten->dataOutput = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->dataOutput = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// // Tile offset index
 	int offset = pt_cuSten->nx * pt_cuSten->nyTile;
@@ -176,10 +177,10 @@ void cuStenCreate2DXp(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXp(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 ) 
 {
 	for (int tile = 0; tile < pt_cuSten->numTiles; tile++)
@@ -198,8 +199,9 @@ void cuStenSwap2DXp(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXp(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 ) 
 {
 	// Buffer used for error checking
@@ -240,6 +242,65 @@ void cuStenDestroy2DXp(
 	free(pt_cuSten->dataOutput);
 }
 
+// ---------------------------------------------------------------------
+// Explicit instantiation
+// ---------------------------------------------------------------------
+
+template
+void cuStenCreate2DXp<double>(
+	cuSten_t<double>*,
+	int,
+	int,
+	int,
+	int,
+	int,
+	int,
+	double*,
+	double*,
+	double*,
+	int,
+	int,
+	int
+);
+
+template
+void cuStenSwap2DXp<double>(
+	cuSten_t<double>*,
+	double*
+);
+
+template
+void cuStenDestroy2DXp<double>(
+	cuSten_t<double>*
+);
+
+template
+void cuStenCreate2DXp<float>(
+	cuSten_t<float>*,
+	int,
+	int,
+	int,
+	int,
+	int,
+	int,
+	float*,
+	float*,
+	float*,
+	int,
+	int,
+	int
+);
+
+template
+void cuStenSwap2DXp<float>(
+	cuSten_t<float>*,
+	float*
+);
+
+template
+void cuStenDestroy2DXp<float>(
+	cuSten_t<float>*
+);
 
 // ---------------------------------------------------------------------
 // End of file

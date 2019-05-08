@@ -125,7 +125,7 @@ int main()
 	// -----------------------------
 
 	// Set up the compute device structs
-	cuSten_t xDirCompute;
+	cuSten_t<double> xDirCompute;
 
 	// Copy the function pointer to the device
 	double* func;

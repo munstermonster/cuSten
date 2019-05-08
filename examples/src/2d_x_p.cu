@@ -118,7 +118,7 @@ int main()
 	// -----------------------------
 
 	// Set up the compute device structs
-	cuSten_t xDirCompute;
+	cuSten_t<double> xDirCompute;
 
 	// Initialise the instance of the stencil
 	cuStenCreate2DXp(&xDirCompute, deviceNum, numTiles, nx, ny, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenLeft, numStenRight);

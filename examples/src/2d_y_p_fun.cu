@@ -141,7 +141,7 @@ int main()
 	// -----------------------------
 
 	// Set up the compute device structs
-	cuSten_t yDirCompute;
+	cuSten_t<double> yDirCompute;
 
 	double* func;
 	cudaMemcpyFromSymbol(&func, devFunc, sizeof(devArg1Y));

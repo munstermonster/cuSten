@@ -124,7 +124,7 @@ int main()
 	// -----------------------------
 
 	// Set up the compute device structs
-	cuSten_t xyDirCompute;
+	cuSten_t<double> xyDirCompute;
 
 	// Initialise the instance of the stencil
 	cuStenCreate2DXYp(

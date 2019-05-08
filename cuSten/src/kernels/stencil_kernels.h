@@ -49,10 +49,10 @@
 // 2D x direction non periodic
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DXnp
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -60,10 +60,10 @@ void cuStenCompute2DXnp
 // 2D x direction periodic
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DXp
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -71,10 +71,10 @@ void cuStenCompute2DXp
 // 2D x direction non periodic - user function
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DXnpFun
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -82,10 +82,10 @@ void cuStenCompute2DXnpFun
 // 2D x direction periodic - user function
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DXpFun
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -93,10 +93,10 @@ void cuStenCompute2DXpFun
 // 2D y direction periodic
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DYp
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -104,10 +104,10 @@ void cuStenCompute2DYp
 // 2D y direction periodic - user function
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DYpFun
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -115,10 +115,10 @@ void cuStenCompute2DYpFun
 // 2D y direction non periodic
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DYnp
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -126,10 +126,10 @@ void cuStenCompute2DYnp
 // 2D y direction non periodic - user function
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DYnpFun
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -137,10 +137,10 @@ void cuStenCompute2DYnpFun
 // 2D xy direction periodic
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DXYp
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -148,10 +148,10 @@ void cuStenCompute2DXYp
 // 2D xy direction periodic - user function
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DXYpFun
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -159,10 +159,10 @@ void cuStenCompute2DXYpFun
 // 2D xy direction non periodic
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DXYnp
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -170,10 +170,10 @@ void cuStenCompute2DXYnp
 // 2D xy direction non periodic - user function
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DXYnpFun 
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 
@@ -181,10 +181,10 @@ void cuStenCompute2DXYnpFun
 // 2D xy WENO periodic
 // ----------------------------------------
 
+template <typename elemType>
 void cuStenCompute2DXYWENOADVp
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 );
 

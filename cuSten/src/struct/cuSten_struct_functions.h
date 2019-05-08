@@ -64,17 +64,18 @@
 	\param numStenRight Number of points on the right side of the stencil
 */
 
+template <typename elemType>
 void cuStenCreate2DXnp(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dataOutput,
-	double* dataInput,
-	double* weights,
+	elemType* dataOutput,
+	elemType* dataInput,
+	elemType* weights,
 	int numSten,
 	int numStenLeft,
 	int numStenRight
@@ -86,10 +87,10 @@ void cuStenCreate2DXnp(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXnp(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DXnp
@@ -97,8 +98,9 @@ void cuStenSwap2DXnp(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXnp(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 // ----------------------------------------
@@ -122,22 +124,23 @@ void cuStenDestroy2DXnp(
 	\param Pointer to user function
 */
 
+template <typename elemType>
 void cuStenCreate2DXnpFun(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dateOutput,
-	double* dateInput,
-	double* coe,
+	elemType* dateOutput,
+	elemType* dateInput,
+	elemType* coe,
 	int numSten,
 	int numStenLeft,
 	int numStenRight,
 	int numCoe,
-	double* func
+	elemType* func
 );
 
 /*! \fun void cuStenSwap2DXnpFun
@@ -146,10 +149,10 @@ void cuStenCreate2DXnpFun(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXnpFun(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DXnpFun
@@ -157,8 +160,9 @@ void cuStenSwap2DXnpFun(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXnpFun(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 // ----------------------------------------
@@ -181,17 +185,18 @@ void cuStenDestroy2DXnpFun(
 	\param numStenRight Number of points on the right side of the stencil
 */
 
+template <typename elemType>
 void cuStenCreate2DXp(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dataNew,
-	double* dataOld,
-	double* weights,
+	elemType* dataNew,
+	elemType* dataOld,
+	elemType* weights,
 	int numSten,
 	int numStenLeft,
 	int numStenRight
@@ -203,10 +208,10 @@ void cuStenCreate2DXp(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXp(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DXnp
@@ -214,8 +219,9 @@ void cuStenSwap2DXp(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXp(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 // ----------------------------------------
@@ -239,30 +245,23 @@ void cuStenDestroy2DXp(
 	\param Pointer to user function
 */
 
+template <typename elemType>
 void cuStenCreate2DXpFun(
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
-
 	int numTiles,
-
 	int nx,
 	int ny,
-
 	int BLOCK_X,
 	int BLOCK_Y,
-
-	double* dataNew,
-	double* dataOld,
-	double* coe,
-
+	elemType* dataNew,
+	elemType* dataOld,
+	elemType* coe,
 	int numSten,
 	int numStenLeft,
 	int numStenRight,
-
 	int numCoe,
-
-	double* func
+	elemType* func
 );
 
 /*! \fun void cuStenSwap2DXpFun
@@ -271,10 +270,10 @@ void cuStenCreate2DXpFun(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXpFun(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DXpFun
@@ -282,8 +281,9 @@ void cuStenSwap2DXpFun(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXpFun(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 // ----------------------------------------
@@ -306,21 +306,21 @@ void cuStenDestroy2DXpFun(
 	\param dataInput Pointer to data input to the function    
 */
 
-void cuStenCreate2DXYWENOADVp
-(
-	cuSten_t* pt_cuSten,
+template <typename elemType>
+void cuStenCreate2DXYWENOADVp(
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double dx,
-	double dy,
-	double* u,
-	double* v,
-	double* dataOutput,
-	double* dataInput
+	elemType dx,
+	elemType dy,
+	elemType* u,
+	elemType* v,
+	elemType* dataOutput,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenSwap2DXYWENOADVp
@@ -329,10 +329,10 @@ void cuStenCreate2DXYWENOADVp
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXYWENOADVp(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DXYWENOADVp
@@ -340,9 +340,10 @@ void cuStenSwap2DXYWENOADVp(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXYWENOADVp
 (
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 // ----------------------------------------
@@ -368,17 +369,18 @@ void cuStenDestroy2DXYWENOADVp
 	\param numStenBottom Number of points on the bottom of the stencil
 */
 
+template <typename elemType>
 void cuStenCreate2DXYnp(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dataOutput,
-	double* dataInput,
-	double* weights,
+	elemType* dataOutput,
+	elemType* dataInput,
+	elemType* weights,
 	int numStenHoriz,
 	int numStenLeft,
 	int numStenRight,
@@ -393,10 +395,10 @@ void cuStenCreate2DXYnp(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXYnp(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DXYnp
@@ -404,8 +406,9 @@ void cuStenSwap2DXYnp(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXYnp(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 // ----------------------------------------
@@ -432,24 +435,25 @@ void cuStenDestroy2DXYnp(
 	\param Pointer to user function
 */
 
+template <typename elemType>
 void cuStenCreate2DXYnpFun(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dataNew,
-	double* dataOld,
-	double* coe,
+	elemType* dataNew,
+	elemType* dataOld,
+	elemType* coe,
 	int numStenHoriz,
 	int numStenLeft,
 	int numStenRight,
 	int numStenVert,
 	int numStenTop,
 	int numStenBottom,
-	double* func
+	elemType* func
 );
 
 /*! \fun void cuStenSwap2DXYnpFun
@@ -458,10 +462,10 @@ void cuStenCreate2DXYnpFun(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXYnpFun(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DXYnpFun
@@ -469,8 +473,9 @@ void cuStenSwap2DXYnpFun(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXYnpFun(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 
@@ -497,17 +502,18 @@ void cuStenDestroy2DXYnpFun(
 	\param numStenBottom Number of points on the bottom of the stencil
 */
 
+template <typename elemType>
 void cuStenCreate2DXYp(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dataNew,
-	double* dataOld,
-	double* weights,
+	elemType* dataNew,
+	elemType* dataOld,
+	elemType* weights,
 	int numStenHoriz,
 	int numStenLeft,
 	int numStenRight,
@@ -522,10 +528,10 @@ void cuStenCreate2DXYp(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXYp(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DXYp
@@ -533,8 +539,9 @@ void cuStenSwap2DXYp(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXYp(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 // ----------------------------------------
@@ -561,24 +568,25 @@ void cuStenDestroy2DXYp(
 	\param Pointer to user function
 */
 
+template <typename elemType>
 void cuStenCreate2DXYpFun(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dataOutput,
-	double* dataInput,
-	double* coe,
+	elemType* dataOutput,
+	elemType* dataInput,
+	elemType* coe,
 	int numStenHoriz,
 	int numStenLeft,
 	int numStenRight,
 	int numStenVert,
 	int numStenTop,
 	int numStenBottom,
-	double* func
+	elemType* func
 );
 
 /*! \fun void cuStenSwap2DYpFun
@@ -587,10 +595,10 @@ void cuStenCreate2DXYpFun(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DXYpFun(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DXYpFun
@@ -598,8 +606,9 @@ void cuStenSwap2DXYpFun(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DXYpFun(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 
@@ -623,17 +632,18 @@ void cuStenDestroy2DXYpFun(
 	\param numStenBottom Number of points on the bottom of the stencil
 */
 
+template <typename elemType>
 void cuStenCreate2DYnp(
-	cuSten_t* pt_cuSten,		
+	cuSten_t<elemType>* pt_cuSten,		
 	int deviceNum,				
 	int numTiles,				
 	int nx,				
 	int ny,				
 	int BLOCK_X,			
 	int BLOCK_Y,				
-	double* dataOutput,			
-	double* dataInput,			
-	double* weights,			
+	elemType* dataOutput,			
+	elemType* dataInput,			
+	elemType* weights,			
 	int numSten,				
 	int numStenTop,				
 	int numStenBottom			
@@ -645,10 +655,10 @@ void cuStenCreate2DYnp(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DYnp(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DYnp
@@ -656,8 +666,9 @@ void cuStenSwap2DYnp(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DYnp(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 // ----------------------------------------
@@ -681,21 +692,22 @@ void cuStenDestroy2DYnp(
 	\param Pointer to user function
 */
 
+template <typename elemType>
 void cuStenCreate2DYnpFun(
-	cuSten_t* pt_cuSten,		
+	cuSten_t<elemType>* pt_cuSten,		
 	int deviceNum,				
 	int numTiles,				
 	int nx,				
 	int ny,				
 	int BLOCK_X,				
 	int BLOCK_Y,				
-	double* dataOutput,			
-	double* dataInput,			
-	double* coe,				
+	elemType* dataOutput,			
+	elemType* dataInput,			
+	elemType* coe,				
 	int numSten,				
 	int numStenTop,				
 	int numStenBottom,			
-	double* func 			
+	elemType* func 			
 );
 
 /*! \fun void cuStenSwap2DYnpFun
@@ -704,10 +716,10 @@ void cuStenCreate2DYnpFun(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DYnpFun(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DYnpFun
@@ -715,8 +727,9 @@ void cuStenSwap2DYnpFun(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DYnpFun(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 // ----------------------------------------
@@ -739,17 +752,18 @@ void cuStenDestroy2DYnpFun(
 	\param numStenBottom Number of points on the bottom of the stencil
 */
 
+template <typename elemType>
 void cuStenCreate2DYp(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dataOutput,
-	double* dataInput,
-	double* weights,
+	elemType* dataOutput,
+	elemType* dataInput,
+	elemType* weights,
 	int numSten,
 	int numStenTop,
 	int numStenBottom
@@ -761,10 +775,10 @@ void cuStenCreate2DYp(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DYp(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DYp
@@ -772,8 +786,9 @@ void cuStenSwap2DYp(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DYp(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 // ----------------------------------------
@@ -798,22 +813,23 @@ void cuStenDestroy2DYp(
 	\param Pointer to user function
 */
 
+template <typename elemType>
 void cuStenCreate2DYpFun(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dataOutput,
-	double* dataInput,
-	double* coe,
+	elemType* dataOutput,
+	elemType* dataInput,
+	elemType* coe,
 	int numSten,
 	int numStenTop,
 	int numStenBottom,
 	int numCoe,
-	double* func	
+	elemType* func	
 );
 
 /*! \fun void cuStenSwap2DYpFun
@@ -822,10 +838,10 @@ void cuStenCreate2DYpFun(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DYpFun(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 );
 
 /*! \fun void cuStenDestroy2DYnpFun
@@ -833,8 +849,9 @@ void cuStenSwap2DYpFun(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DYpFun(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 );
 
 // ---------------------------------------------------------------------

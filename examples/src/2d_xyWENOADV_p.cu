@@ -110,7 +110,7 @@ int main()
 	// -----------------------------
 
 	// Set up the compute device structs
-	cuSten_t xyWENOCompute;
+	cuSten_t<double> xyWENOCompute;
 
 	// Initialise the instance of the stencil
 	cuStenCreate2DXYWENOADVp(	

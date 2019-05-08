@@ -172,7 +172,7 @@ int main()
 	// -----------------------------
 
 	// Set up the compute device structs
-	cuSten_t xyDirCompute;
+	cuSten_t<double> xyDirCompute;
 
 	// Copy the function to device memory
 	double* func;

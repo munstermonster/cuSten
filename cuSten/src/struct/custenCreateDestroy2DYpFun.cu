@@ -56,22 +56,23 @@
 	\param Pointer to user function
 */
 
+template <typename elemType>
 void cuStenCreate2DYpFun(
-	cuSten_t* pt_cuSten,
+	cuSten_t<elemType>* pt_cuSten,
 	int deviceNum,
 	int numTiles,
 	int nx,
 	int ny,
 	int BLOCK_X,
 	int BLOCK_Y,
-	double* dataOutput,
-	double* dataInput,
-	double* coe,
+	elemType* dataOutput,
+	elemType* dataInput,
+	elemType* coe,
 	int numSten,
 	int numStenTop,
 	int numStenBottom,
 	int numCoe,
-	double* func	
+	elemType* func	
 ) 
 {
 	// Buffer used for error checking
@@ -144,7 +145,7 @@ void cuStenCreate2DYpFun(
 	pt_cuSten->numCoe = numCoe;
 
 	// Set the amount of shared memory required
-	pt_cuSten->mem_shared = (pt_cuSten->nxLocal * pt_cuSten->nyLocal) * sizeof(double) + pt_cuSten->numCoe * sizeof(double);
+	pt_cuSten->mem_shared = (pt_cuSten->nxLocal * pt_cuSten->nyLocal) * sizeof(elemType) + pt_cuSten->numCoe * sizeof(elemType);
 
 	// Find number of points per tile
 	pt_cuSten->nyTile = pt_cuSten->ny / pt_cuSten->numTiles;	
@@ -157,10 +158,10 @@ void cuStenCreate2DYpFun(
 	pt_cuSten->coe = coe;
 
 	// Allocate the pointers for each input tile
-	pt_cuSten->dataInput = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->dataInput = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// Allocate the pointers for each output tile
-	pt_cuSten->dataOutput = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->dataOutput = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// // Tile offset index
 	int offset = pt_cuSten->nx * pt_cuSten->nyTile;
@@ -181,10 +182,10 @@ void cuStenCreate2DYpFun(
 	// 3 or greater
 
 	// Allocate top boundary memory
-	pt_cuSten->boundaryTop = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->boundaryTop = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	// Allocate bottom boundary memory
-	pt_cuSten->boundaryBottom = (double**)malloc(pt_cuSten->numTiles * sizeof(double));
+	pt_cuSten->boundaryBottom = (elemType**)malloc(pt_cuSten->numTiles * sizeof(elemType));
 
 	switch(pt_cuSten->numTiles)
 	{
@@ -242,10 +243,10 @@ void cuStenCreate2DYpFun(
 	\param dataInput Pointer to data input to the on the next compute
 */
 
+template <typename elemType>
 void cuStenSwap2DYpFun(
-	cuSten_t* pt_cuSten,
-
-	double* dataInput
+	cuSten_t<elemType>* pt_cuSten,
+	elemType* dataInput
 ) 
 {
 	for (int tile = 0; tile < pt_cuSten->numTiles; tile++)
@@ -301,8 +302,9 @@ void cuStenSwap2DYpFun(
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
+template <typename elemType>
 void cuStenDestroy2DYpFun(
-	cuSten_t* pt_cuSten
+	cuSten_t<elemType>* pt_cuSten
 ) 
 {
 	// Buffer used for error checking
@@ -349,6 +351,69 @@ void cuStenDestroy2DYpFun(
 	free(pt_cuSten->boundaryBottom);
 }
 
+// ---------------------------------------------------------------------
+// Explicit instantiation
+// ---------------------------------------------------------------------
+
+template
+void cuStenCreate2DYpFun<double>(
+	cuSten_t<double>*,
+	int,
+	int,
+	int,
+	int,
+	int,
+	int,
+	double*,
+	double*,
+	double*,
+	int,
+	int,
+	int,
+	int,
+	double*	
+);
+
+template
+void cuStenSwap2DYpFun<double>(
+	cuSten_t<double>*,
+	double*
+);
+
+template
+void cuStenDestroy2DYpFun<double>(
+	cuSten_t<double>*
+);
+
+template
+void cuStenCreate2DYpFun<float>(
+	cuSten_t<float>*,
+	int,
+	int,
+	int,
+	int,
+	int,
+	int,
+	float*,
+	float*,
+	float*,
+	int,
+	int,
+	int,
+	int,
+	float*	
+);
+
+template
+void cuStenSwap2DYpFun<float>(
+	cuSten_t<float>*,
+	float*
+);
+
+template
+void cuStenDestroy2DYpFun<float>(
+	cuSten_t<float>*
+);
 
 // ---------------------------------------------------------------------
 // End of file

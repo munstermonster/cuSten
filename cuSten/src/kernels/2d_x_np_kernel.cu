@@ -52,11 +52,12 @@
 	\param nx Total number of points in the x direction
 */
 
+template <typename elemType>
 __global__ void kernel2DXnp
 (
-	double* dataOutput,  					
-	double* dataInput,					
-	const double* weights,       		
+	elemType* dataOutput,  					
+	elemType* dataInput,					
+	const elemType* weights,       		
 	const int numSten,				
 	const int numStenLeft,					
 	const int numStenRight,				
@@ -69,8 +70,8 @@ __global__ void kernel2DXnp
 	// Allocate the shared memory
 	extern __shared__ int memory[];
 
-	double* arrayLocal = (double*)&memory;
-	double* weigthsLocal = (double*)&arrayLocal[nxLocal * nyLocal];
+	elemType* arrayLocal = (elemType*)&memory;
+	elemType* weigthsLocal = (elemType*)&arrayLocal[nxLocal * nyLocal];
 
 	// Move the weigths into shared memory
 	#pragma unroll
@@ -80,7 +81,7 @@ __global__ void kernel2DXnp
 	}
 
 	// True matrix index
-    int globalIdx = blockDim.x * blockIdx.x + threadIdx.x;
+	int globalIdx = blockDim.x * blockIdx.x + threadIdx.x;
 	int globalIdy = blockDim.y * blockIdx.y + threadIdx.y;
 
 	// Local matrix index
@@ -88,7 +89,7 @@ __global__ void kernel2DXnp
 	int localIdy = threadIdx.y;
 
 	// Local sum variable
-	double sum = 0.0;
+	elemType sum = 0.0;
 
 	// Set index for summing stencil
 	int stenSet;
@@ -187,10 +188,10 @@ __global__ void kernel2DXnp
 	\param offload Set to HOST to move data back to CPU or DEVICE to keep on the GPU
 */
 
+template <typename elemType>
 void cuStenCompute2DXnp
 (
-	cuSten_t* pt_cuSten,
-
+	cuSten_t<elemType>* pt_cuSten,
 	bool offload
 )
 {	
@@ -210,14 +211,14 @@ void cuStenCompute2DXnp
 	int local_ny = pt_cuSten->BLOCK_Y;
 
 	// Load the weights
-	cudaMemPrefetchAsync(pt_cuSten->weights, pt_cuSten->numSten * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->weights, pt_cuSten->numSten * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 
 	// Preload the first block
 	cudaStreamSynchronize(pt_cuSten->streams[1]);
 
 	// Prefetch the tile data
-	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataInput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+	cudaMemPrefetchAsync(pt_cuSten->dataOutput[0], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 	
 	// Record the event
 	cudaEventRecord(pt_cuSten->events[0], pt_cuSten->streams[1]);
@@ -238,8 +239,8 @@ void cuStenCompute2DXnp
 		// Offload should the user want to
 		if (offload == 1)
 		{
-			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
-	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), cudaCpuDeviceId, pt_cuSten->streams[0]);
+			cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[0]);
+	    	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), cudaCpuDeviceId, pt_cuSten->streams[0]);
 		}
 
 		// Load the next tile
@@ -249,8 +250,8 @@ void cuStenCompute2DXnp
     		cudaStreamSynchronize(pt_cuSten->streams[1]);
 
       		// Prefetch the necessary tiles  		
-    		cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
-		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(double), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+    		cudaMemPrefetchAsync(pt_cuSten->dataOutput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
+		 	cudaMemPrefetchAsync(pt_cuSten->dataInput[tile + 1], pt_cuSten->nx * pt_cuSten->nyTile * sizeof(elemType), pt_cuSten->deviceNum, pt_cuSten->streams[1]);
 	
 			// Record the event
 			cudaEventRecord(pt_cuSten->events[1], pt_cuSten->streams[1]);
@@ -268,6 +269,54 @@ void cuStenCompute2DXnp
 		te = pt_cuSten->events[0]; pt_cuSten->events[0] = pt_cuSten->events[1]; pt_cuSten->events[1] = te; 
     }
 }
+
+// ---------------------------------------------------------------------
+// Explicit instantiation
+// ---------------------------------------------------------------------
+
+template
+__global__ void kernel2DXnp<double>
+(
+	double*,  					
+	double*,					
+	const double*,       		
+	const int,				
+	const int,					
+	const int,				
+	const int,					
+	const int,					
+	const int,					
+	const int						
+);
+
+template
+void cuStenCompute2DXnp<double>
+(
+	cuSten_t<double>*,
+	bool
+);
+
+template
+__global__ void kernel2DXnp<float>
+(
+	float*,  					
+	float*,					
+	const float*,       		
+	const int,				
+	const int,					
+	const int,				
+	const int,					
+	const int,					
+	const int,					
+	const int						
+);
+
+template
+void cuStenCompute2DXnp<float>
+(
+	cuSten_t<float>*,
+	bool
+);
 
 // ---------------------------------------------------------------------
 // End of file

@@ -80,8 +80,8 @@
 *  @var devFunc Pointer to user defined function pointer
 */
 
-
-typedef struct
+template <typename elemType>
+struct cuSten_t
 {
     int deviceNum;
     int numStreams;
@@ -101,24 +101,24 @@ typedef struct
 	int xGrid;
 	int yGrid;
 	int mem_shared; 
-	double** dataInput;
-	double** dataOutput;
-	double** uVel;
-	double** vVel;
-	double* weights;
-	double* coe;
-	double coeDx;
-	double coeDy;
+	elemType** dataInput;
+	elemType** dataOutput;
+	elemType** uVel;
+	elemType** vVel;
+	elemType* weights;
+	elemType* coe;
+	elemType coeDx;
+	elemType coeDy;
 	int numCoe;
 	int nxLocal;
 	int nyLocal;	
-	double** boundaryTop;
-	double** boundaryBottom;
+	elemType** boundaryTop;
+	elemType** boundaryBottom;
 	int numBoundaryTop;
 	int numBoundaryBottom;
 	cudaStream_t* streams;
 	cudaEvent_t* events;
-	double* devFunc;
-} cuSten_t;
+	elemType* devFunc;
+};
 
 #endif

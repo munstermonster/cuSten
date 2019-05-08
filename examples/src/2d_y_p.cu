@@ -112,7 +112,7 @@ int main()
 	// -----------------------------
 
 	// Set up the compute device structs
-	cuSten_t yDirCompute;
+	cuSten_t<double> yDirCompute;
 
 	// Initialise the instance of the stencil
 	cuStenCreate2DYp(&yDirCompute, deviceNum, numTiles, nx, ny, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenTop, numStenBottom);
