@@ -10,7 +10,7 @@ The naming convention is as follows
 
 dimension_direction_periodicity.cu
 
-dimension = dimension of the data 2d or 3d (3d under developent)
+dimension = dimension of the data 2d
 direction = List of directions in which the stencil will be applied, for example an x direction in 2D will apply the stencil in only the x direction
 periodicity = Apply the stencil periodically to the data or not, p for periodic, np for non-periodic
 
