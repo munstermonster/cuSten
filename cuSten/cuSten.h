@@ -27,6 +27,10 @@
 #ifndef CUSTEN_H
 #define CUSTEN_H
 
+#define DEVICE 0
+#define HOST 1
+
+
 // ---------------------------------------------------------------------
 // Include headers from cuSten library
 // ---------------------------------------------------------------------

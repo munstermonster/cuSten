@@ -38,7 +38,7 @@
 // Function to create the struct
 // ---------------------------------------------------------------------
 
-/*! \fun __global__ void custenCreate2DYnp
+/*! \fun void cuStenCreate2DYnp
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -54,7 +54,7 @@
 	\param numStenBottom Number of points on the bottom of the stencil
 */
 
-void custenCreate2DYnp(
+void cuStenCreate2DYnp(
 	cuSten_t* pt_cuSten,		
 	int deviceNum,				
 	int numTiles,				
@@ -227,13 +227,13 @@ void custenCreate2DYnp(
 // Swap pointers
 // ---------------------------------------------------------------------
 
-/*! \fun __global__ void custenSwap2DYnp
+/*! \fun void cuStenSwap2DYnp
     \brief Function to swap pointers necessary for timesteppint
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DYnp(
+void cuStenSwap2DYnp(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
@@ -287,12 +287,12 @@ void custenSwap2DYnp(
 // Function to destroy the struct for a 2D y direction non periodic
 // ---------------------------------------------------------------------
 
-/*! \fun __global__ void custenDestroy2DYnp
+/*! \fun void cuStenDestroy2DYnp
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DYnp(
+void cuStenDestroy2DYnp(
 	cuSten_t* pt_cuSten
 ) 
 {

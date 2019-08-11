@@ -24,7 +24,7 @@ from scipy.integrate import simps
 
 output = 'output/'
 
-nx = 1024
+nx = 512
 
 s_t = []
 k1 = []
@@ -60,8 +60,8 @@ for file in hdfilesSorted:
 	a_group_key = f.keys()[0]
 	data = np.array(f[a_group_key])
 
-	x = np.linspace(0, 2.0 * math.pi, 2 ** 10)
-	y = np.linspace(0, 2.0 * math.pi, 2 ** 10)
+	x = np.linspace(0, 2.0 * math.pi, nx)
+	y = np.linspace(0, 2.0 * math.pi, nx)
 	avg = (1.0 / ((2.0 * math.pi) ** 2)) * simps(simps(np.square(data), y), x)
 	s_t.append(1.0 / (1.0 - avg))
 
@@ -78,7 +78,7 @@ plt.loglog(t, tThird, label = 't^{1/3}')
 plt.loglog(t, k1, label = '1 / k_1')
 plt.legend(loc='upper left')
 plt.xlabel('t')
-plt.savefig('analysis.png')
+plt.savefig('analysis.png', dpi = 300)
 
 
 

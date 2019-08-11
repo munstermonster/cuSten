@@ -1,6 +1,7 @@
 // Andrew Gloster
 // February 2019
 // Program to solve the 2D Cahn-Hilliard equation on a periodic domain using the ADI method
+// Outputs timing
 
 //   Copyright 2019 Andrew Gloster
 
@@ -32,7 +33,7 @@
 //  Programmer Libraries and Headers
 // ---------------------------------------------------------------------
 
-#include "../../cuSten/cuSten.h"
+#include "../../../cuSten/cuSten.h"
 #include "cuPentBatch.h"
 #include "BatchHyper.h"
 
@@ -99,46 +100,6 @@ __global__ static void findNew(double* cCurr, double* cBar, double* cHalf, int n
 	cCurr[index] = cBar[index] + cHalf[index];
 }
 
-// Print out to hdf5
-static herr_t Print_Out(double* data, double time, int nx, int ny){
-    
-    char str_num[1024];
-    char str_file[2048];
-
-    snprintf(str_num, 20, "%0.10lf", time);
-
-    snprintf(str_file, 100, "%s%s%s", "output/cahn_hilliard_", str_num, ".nc");
-
-    // Print out matrix
-    hsize_t dims[2];
-
-    hid_t file_id, dataset_id, dataspace_id;
-    herr_t status;
-
-    file_id = H5Fcreate(str_file, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-
-    dims[0] = nx;
-    dims[1] = ny;
-
-    dataspace_id = H5Screate_simple(2, dims, NULL);
-
-    dataset_id = H5Dcreate2(file_id, "/c", H5T_NATIVE_DOUBLE, dataspace_id, 
-                          H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
-    status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
-
-    /* End access to the dataset and release resources used by it. */
-    status = H5Dclose(dataset_id);
-
-    /* Terminate access to the data space. */ 
-    status = H5Sclose(dataspace_id);
-
-    /* Close the file. */
-    status = H5Fclose(file_id);
-
-    return status;
-}
-
 static double double_rand(double min, double max)
 {
     double scale = (double) rand() / (double) RAND_MAX; /* [0, 1.0] */
@@ -194,7 +155,7 @@ __device__ devArg1XY devFunc = nonLinRHS;
 //  Begin main program
 // ---------------------------------------------------------------------
 
-int main()
+int main(int argc, char *argv[])
 {
     //----------------------------------------
     // Simulation paramters
@@ -204,17 +165,19 @@ int main()
     double D = 1.0;
     double gamma = 0.01;
 
-    // Set grid spacing -- Use a square grid -- thus all nx = ny
-    int nx = 512;
+    // Set grid spacing -- Use a square grid -- thus all n = ny
+    // Read from command line
+    int nx;
+    nx = atoi(argv[1]);
 
     // Set the size of the reduced matrix
     int size = nx - 2;
 
     // Set timing
-    double T = 100.0;
+    double T = 10.0;
 
     // Domain size
-    double lx = 2.0 * M_PI;
+    double lx = 16.0 * M_PI;
 
     // Spacings
     double dx = lx / nx;
@@ -222,9 +185,6 @@ int main()
 
     //  Buffer used for error checking
     char msgStringBuffer[1024];
-
-    // How often to output
-    int print = 100;
 
     // What device to compute on
     int computeDevice = 0;
@@ -522,10 +482,22 @@ int main()
     // Begin timestepping
     //----------------------------------------
 
-    double time = dt;
-    int timeCount = 1;
+    // Track current time-step
+    double t = 0.0;
 
-    while (time < T)
+    // Define events for timing
+    cudaEvent_t start, stop;
+  
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    // Store time
+    float time;
+
+    // Start time
+    cudaEventRecord(start, 0 );
+
+    while (t < T)
     {
     	// Set cBar
         findCBar<<<gridDim, blockDim>>>(cOld, cCurr, cBar, nx);
@@ -584,21 +556,24 @@ int main()
     	// Ensure computation completed
     	cudaDeviceSynchronize();
 
-        // Add on the next time
-        time += dt;
-        timeCount += 1;
-        printf("%lf \n", time);
 
-        if (timeCount % print == 0)
-        {
-        	Print_Out(cCurr, time, nx, nx);
-        }
+        // Add on the next time
+        t += dt;
     }
 
    	// Ensure computation completed
 	cudaDeviceSynchronize(); 
 
-	Print_Out(cCurr, time, nx, nx);
+    // End time
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+    
+    // Get elapsed time for kernel execution
+    cudaEventElapsedTime(&time, start, stop);
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
+
+    printf("%f \n", time / 1000);
 
     //----------------------------------------
     // Free memory at the end

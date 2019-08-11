@@ -49,7 +49,7 @@
 // 2D x direction non periodic
 // ----------------------------------------
 
-void custenCompute2DXnp
+void cuStenCompute2DXnp
 (
 	cuSten_t* pt_cuSten,
 
@@ -60,7 +60,7 @@ void custenCompute2DXnp
 // 2D x direction periodic
 // ----------------------------------------
 
-void custenCompute2DXp
+void cuStenCompute2DXp
 (
 	cuSten_t* pt_cuSten,
 
@@ -71,7 +71,7 @@ void custenCompute2DXp
 // 2D x direction non periodic - user function
 // ----------------------------------------
 
-void custenCompute2DXnpFun
+void cuStenCompute2DXnpFun
 (
 	cuSten_t* pt_cuSten,
 
@@ -82,7 +82,7 @@ void custenCompute2DXnpFun
 // 2D x direction periodic - user function
 // ----------------------------------------
 
-void custenCompute2DXpFun
+void cuStenCompute2DXpFun
 (
 	cuSten_t* pt_cuSten,
 
@@ -93,7 +93,7 @@ void custenCompute2DXpFun
 // 2D y direction periodic
 // ----------------------------------------
 
-void custenCompute2DYp
+void cuStenCompute2DYp
 (
 	cuSten_t* pt_cuSten,
 
@@ -104,7 +104,7 @@ void custenCompute2DYp
 // 2D y direction periodic - user function
 // ----------------------------------------
 
-void custenCompute2DYpFun
+void cuStenCompute2DYpFun
 (
 	cuSten_t* pt_cuSten,
 
@@ -115,7 +115,7 @@ void custenCompute2DYpFun
 // 2D y direction non periodic
 // ----------------------------------------
 
-void custenCompute2DYnp
+void cuStenCompute2DYnp
 (
 	cuSten_t* pt_cuSten,
 
@@ -126,7 +126,7 @@ void custenCompute2DYnp
 // 2D y direction non periodic - user function
 // ----------------------------------------
 
-void custenCompute2DYnpFun
+void cuStenCompute2DYnpFun
 (
 	cuSten_t* pt_cuSten,
 
@@ -137,7 +137,7 @@ void custenCompute2DYnpFun
 // 2D xy direction periodic
 // ----------------------------------------
 
-void custenCompute2DXYp
+void cuStenCompute2DXYp
 (
 	cuSten_t* pt_cuSten,
 
@@ -148,7 +148,7 @@ void custenCompute2DXYp
 // 2D xy direction periodic - user function
 // ----------------------------------------
 
-void custenCompute2DXYpFun
+void cuStenCompute2DXYpFun
 (
 	cuSten_t* pt_cuSten,
 
@@ -159,7 +159,7 @@ void custenCompute2DXYpFun
 // 2D xy direction non periodic
 // ----------------------------------------
 
-void custenCompute2DXYnp
+void cuStenCompute2DXYnp
 (
 	cuSten_t* pt_cuSten,
 
@@ -170,7 +170,7 @@ void custenCompute2DXYnp
 // 2D xy direction non periodic - user function
 // ----------------------------------------
 
-void custenCompute2DXYnpFun 
+void cuStenCompute2DXYnpFun 
 (
 	cuSten_t* pt_cuSten,
 
@@ -181,7 +181,7 @@ void custenCompute2DXYnpFun
 // 2D xy WENO periodic
 // ----------------------------------------
 
-void custenCompute2DXYWENOADVp
+void cuStenCompute2DXYWENOADVp
 (
 	cuSten_t* pt_cuSten,
 

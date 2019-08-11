@@ -40,7 +40,7 @@
 // Function to create the struct for a 2D x direction non periodic
 // ---------------------------------------------------------------------
 
-/*! \fun __global__ void custenCreate2DXpFun
+/*! \fun void cuStenCreate2DXpFun
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -57,7 +57,7 @@
 	\param Pointer to user function
 */
 
-void custenCreate2DXpFun(
+void cuStenCreate2DXpFun(
 	cuSten_t* pt_cuSten,
 
 	int deviceNum,
@@ -192,13 +192,13 @@ void custenCreate2DXpFun(
 // Swap pointers
 // ---------------------------------------------------------------------
 
-/*! \fun __global__ void custenSwap2DXpFun
+/*! \fun void cuStenSwap2DXpFun
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DXpFun(
+void cuStenSwap2DXpFun(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
@@ -215,12 +215,12 @@ void custenSwap2DXpFun(
 // Function to destroy the struct
 // ---------------------------------------------------------------------
 
-/*! \fun __global__ void custenDestroy2DXpFun
+/*! \fun void cuStenDestroy2DXpFun
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DXpFun(
+void cuStenDestroy2DXpFun(
 	cuSten_t* pt_cuSten
 ) 
 {

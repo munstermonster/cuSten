@@ -39,7 +39,7 @@
 // Function to create the struct
 // ---------------------------------------------------------------------
 
-/*! \fun __global__ void custenCreate2DXYpFun
+/*! \fun void cuStenCreate2DXYpFun
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -59,7 +59,7 @@
 	\param Pointer to user function
 */
 
-void custenCreate2DXYpFun(
+void cuStenCreate2DXYpFun(
 	cuSten_t* pt_cuSten,
 	int deviceNum,
 	int numTiles,
@@ -250,13 +250,13 @@ void custenCreate2DXYpFun(
 // Swap pointers
 // ---------------------------------------------------------------------
 
-/*! \fun __global__ void custenSwap2DYpFun
+/*! \fun void cuStenSwap2DYpFun
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DXYpFun(
+void cuStenSwap2DXYpFun(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
@@ -310,12 +310,12 @@ void custenSwap2DXYpFun(
 // Function to destroy the struct
 // ---------------------------------------------------------------------
 
-/*! \fun __global__ void custenDestroy2DXYpFun
+/*! \fun void cuStenDestroy2DXYpFun
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DXYpFun(
+void cuStenDestroy2DXYpFun(
 	cuSten_t* pt_cuSten
 ) 
 {

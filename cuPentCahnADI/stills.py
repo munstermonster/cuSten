@@ -25,7 +25,7 @@ from matplotlib import animation
 
 output = 'output/'
 
-nx = 1024
+nx = 512
 
 # Get filenames and times
 hdfiles = os.listdir(output)
@@ -56,13 +56,13 @@ def Plot(i):
 	m.set_array(data)
 	m.set_clim(-1.0, 1.0)
 	plt.colorbar(m)
-	plt.savefig('contour' + str(i) + '.png')
+	plt.savefig('contour' + str(i) + '.png', dpi = 300)
 
 	print(file)
 
 	return CS
 
+Plot(10)
+Plot(30)
 Plot(50)
-Plot(100)
-Plot(150)
-Plot(200)
+Plot(70)

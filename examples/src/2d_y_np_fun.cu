@@ -151,7 +151,7 @@ int main()
 	cudaMemcpyFromSymbol(&func, devFunc, sizeof(devArg1Y));
 
 	// Initialise the instance of the stencil
-	custenCreate2DYnpFun(&yDirCompute, deviceNum, numTiles, nx, ny, BLOCK_X, BLOCK_Y, dataNew, dataOld, coe, numSten, numStenTop, numStenBottom, func);
+	cuStenCreate2DYnpFun(&yDirCompute, deviceNum, numTiles, nx, ny, BLOCK_X, BLOCK_Y, dataNew, dataOld, coe, numSten, numStenTop, numStenBottom, func);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();
@@ -161,7 +161,7 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DYnpFun(&yDirCompute, 0);
+	cuStenCompute2DYnpFun(&yDirCompute, HOST);
 
 	// Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
@@ -179,7 +179,7 @@ int main()
 	// -----------------------------
 
 	// Destroy struct
-	// custenDestroy2DYpFun(&yDirCompute);
+	// cuStenDestroy2DYpFun(&yDirCompute);
 
 	// Free memory at the end
 	cudaFree(dataOld);

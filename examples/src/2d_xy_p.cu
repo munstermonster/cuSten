@@ -127,7 +127,7 @@ int main()
 	cuSten_t xyDirCompute;
 
 	// Initialise the instance of the stencil
-	custenCreate2DXYp(
+	cuStenCreate2DXYp(
 		&xyDirCompute,
 
 		deviceNum,
@@ -161,7 +161,7 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DXYp(&xyDirCompute, 0);
+	cuStenCompute2DXYp(&xyDirCompute, HOST);
 
 	// // Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
@@ -171,7 +171,7 @@ int main()
 	// -----------------------------
 
 	// Destroy struct
-	custenDestroy2DXYp(&xyDirCompute);
+	cuStenDestroy2DXYp(&xyDirCompute);
 
 	// Free memory at the end
 	cudaFree(dataInput);

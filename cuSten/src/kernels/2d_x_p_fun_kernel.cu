@@ -163,13 +163,13 @@ __global__ void kernel2DXpFun
 // Function to compute kernel
 // ---------------------------------------------------------------------
 
-/*! \fun void custenCompute2DXpFun
+/*! \fun void cuSenCompute2DXpFun
     \brief Function called by user to compute the stencil.
     \param pt_cuSten Pointer to cuSten data type which contains all the necessary input
-	\param offload Boolean set by user to 1 if they wish to move the data back to the host after completing computation, 0 otherwise
+	\param offload Set to HOST to move data back to CPU or DEVICE to keep on the GPU
 */
 
-void custenCompute2DXpFun
+void cuSenCompute2DXpFun
 (
 	cuSten_t* pt_cuSten,
 

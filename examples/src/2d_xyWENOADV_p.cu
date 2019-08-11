@@ -113,7 +113,7 @@ int main()
 	cuSten_t xyWENOCompute;
 
 	// Initialise the instance of the stencil
-	custenCreate2DXYWENOADVp(	
+	cuStenCreate2DXYWENOADVp(	
 		&xyWENOCompute,
 
 		deviceNum,
@@ -145,7 +145,7 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DXYWENOADVp(&xyWENOCompute, 1);
+	cuStenCompute2DXYWENOADVp(&xyWENOCompute, HOST);
 
 	// // Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
@@ -155,7 +155,7 @@ int main()
 	// -----------------------------
 
 	// Destroy struct
-	custenDestroy2DXYWENOADVp(&xyWENOCompute);
+	cuStenDestroy2DXYWENOADVp(&xyWENOCompute);
 
 	// Free memory at the end
 	cudaFree(dataInput);

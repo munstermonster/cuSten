@@ -6,6 +6,7 @@ CHANGELOG
 
 | Contents               |
 | :--------------------- |
+| [cuSten 2.1](#cuSten-21) |
 | [cuSten 2.0](#cuSten-20) |
 | [cuSten 1.5](#cuSten-15) |
 | [cuSten 1.4](#cuSten-14) |
@@ -17,6 +18,15 @@ CHANGELOG
 
 
 </details>
+
+cuSten 2.1
+---------
+
+* Updated naming convention to consistent cuSten for all functions and types
+* Replaced the 0 and 1 for loading/unloading data with MACROS HOST and DEVICE to specify where the programmer desires the data to be stored
+* Restructured cuPentCahnADI to use a better guess for the initial n - 1 time step, scheme now more stable.
+* Added serial example of the same for GPU versus CPU timing benchmarks.
+* doxygen updated to reflect above changes
 
 cuSten 2.0
 ---------

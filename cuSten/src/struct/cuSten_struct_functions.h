@@ -48,7 +48,7 @@
 // 2D x direction non periodic
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DXnp
+/*! \fun void cuStenCreate2DXnp
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -64,7 +64,7 @@
 	\param numStenRight Number of points on the right side of the stencil
 */
 
-void custenCreate2DXnp(
+void cuStenCreate2DXnp(
 	cuSten_t* pt_cuSten,
 	int deviceNum,
 	int numTiles,
@@ -80,24 +80,24 @@ void custenCreate2DXnp(
 	int numStenRight
 );
 
-/*! \fun __global__ void custenSwap2DXnp
+/*! \fun void cuStenSwap2DXnp
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DXnp(
+void cuStenSwap2DXnp(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DXnp
+/*! \fun void cuStenDestroy2DXnp
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DXnp(
+void cuStenDestroy2DXnp(
 	cuSten_t* pt_cuSten
 );
 
@@ -105,7 +105,7 @@ void custenDestroy2DXnp(
 // 2D x direction non periodic - user function
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DXnpFun
+/*! \fun void cuStenCreate2DXnpFun
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -122,7 +122,7 @@ void custenDestroy2DXnp(
 	\param Pointer to user function
 */
 
-void custenCreate2DXnpFun(
+void cuStenCreate2DXnpFun(
 	cuSten_t* pt_cuSten,
 	int deviceNum,
 	int numTiles,
@@ -140,24 +140,24 @@ void custenCreate2DXnpFun(
 	double* func
 );
 
-/*! \fun __global__ void custenSwap2DXnpFun
+/*! \fun void cuStenSwap2DXnpFun
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DXnpFun(
+void cuStenSwap2DXnpFun(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DXnpFun
+/*! \fun void cuStenDestroy2DXnpFun
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DXnpFun(
+void cuStenDestroy2DXnpFun(
 	cuSten_t* pt_cuSten
 );
 
@@ -165,7 +165,7 @@ void custenDestroy2DXnpFun(
 // 2D x direction periodic
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DXp
+/*! \fun void cuStenCreate2DXp
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -181,7 +181,7 @@ void custenDestroy2DXnpFun(
 	\param numStenRight Number of points on the right side of the stencil
 */
 
-void custenCreate2DXp(
+void cuStenCreate2DXp(
 	cuSten_t* pt_cuSten,
 	int deviceNum,
 	int numTiles,
@@ -197,24 +197,24 @@ void custenCreate2DXp(
 	int numStenRight
 );
 
-/*! \fun __global__ void custenSwap2DXp
+/*! \fun void cuStenSwap2DXp
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DXp(
+void cuStenSwap2DXp(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DXnp
+/*! \fun void cuStenDestroy2DXnp
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DXp(
+void cuStenDestroy2DXp(
 	cuSten_t* pt_cuSten
 );
 
@@ -222,7 +222,7 @@ void custenDestroy2DXp(
 // 2D x direction periodic - user function
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DXpFun
+/*! \fun void cuStenCreate2DXpFun
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -239,7 +239,7 @@ void custenDestroy2DXp(
 	\param Pointer to user function
 */
 
-void custenCreate2DXpFun(
+void cuStenCreate2DXpFun(
 	cuSten_t* pt_cuSten,
 
 	int deviceNum,
@@ -265,24 +265,24 @@ void custenCreate2DXpFun(
 	double* func
 );
 
-/*! \fun __global__ void custenSwap2DXpFun
+/*! \fun void cuStenSwap2DXpFun
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DXpFun(
+void cuStenSwap2DXpFun(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DXpFun
+/*! \fun void cuStenDestroy2DXpFun
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DXpFun(
+void cuStenDestroy2DXpFun(
 	cuSten_t* pt_cuSten
 );
 
@@ -290,7 +290,7 @@ void custenDestroy2DXpFun(
 // 2D xy direction periodic WENO
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DXYWENOADVp
+/*! \fun void cuStenCreate2DXYWENOADVp
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -306,7 +306,7 @@ void custenDestroy2DXpFun(
 	\param dataInput Pointer to data input to the function    
 */
 
-void custenCreate2DXYWENOADVp
+void cuStenCreate2DXYWENOADVp
 (
 	cuSten_t* pt_cuSten,
 	int deviceNum,
@@ -323,24 +323,24 @@ void custenCreate2DXYWENOADVp
 	double* dataInput
 );
 
-/*! \fun __global__ void custenSwap2DXYWENOADVp
+/*! \fun void cuStenSwap2DXYWENOADVp
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DXYWENOADVp(
+void cuStenSwap2DXYWENOADVp(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DXYWENOADVp
+/*! \fun void cuStenDestroy2DXYWENOADVp
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DXYWENOADVp
+void cuStenDestroy2DXYWENOADVp
 (
 	cuSten_t* pt_cuSten
 );
@@ -349,7 +349,7 @@ void custenDestroy2DXYWENOADVp
 // 2D xy direction non periodic 
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DXYnp
+/*! \fun void cuStenCreate2DXYnp
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -368,7 +368,7 @@ void custenDestroy2DXYWENOADVp
 	\param numStenBottom Number of points on the bottom of the stencil
 */
 
-void custenCreate2DXYnp(
+void cuStenCreate2DXYnp(
 	cuSten_t* pt_cuSten,
 	int deviceNum,
 	int numTiles,
@@ -387,24 +387,24 @@ void custenCreate2DXYnp(
 	int numStenBottom
 );
 
-/*! \fun __global__ void custenSwap2DXYnp
+/*! \fun void cuStenSwap2DXYnp
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DXYnp(
+void cuStenSwap2DXYnp(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DXYnp
+/*! \fun void cuStenDestroy2DXYnp
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DXYnp(
+void cuStenDestroy2DXYnp(
 	cuSten_t* pt_cuSten
 );
 
@@ -412,7 +412,7 @@ void custenDestroy2DXYnp(
 // 2D xy direction non periodic - user function
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DXYnpFun
+/*! \fun void cuStenCreate2DXYnpFun
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -432,7 +432,7 @@ void custenDestroy2DXYnp(
 	\param Pointer to user function
 */
 
-void custenCreate2DXYnpFun(
+void cuStenCreate2DXYnpFun(
 	cuSten_t* pt_cuSten,
 	int deviceNum,
 	int numTiles,
@@ -452,24 +452,24 @@ void custenCreate2DXYnpFun(
 	double* func
 );
 
-/*! \fun __global__ void custenSwap2DXYnpFun
+/*! \fun void cuStenSwap2DXYnpFun
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DXYnpFun(
+void cuStenSwap2DXYnpFun(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DXYnpFun
+/*! \fun void cuStenDestroy2DXYnpFun
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DXYnpFun(
+void cuStenDestroy2DXYnpFun(
 	cuSten_t* pt_cuSten
 );
 
@@ -478,7 +478,7 @@ void custenDestroy2DXYnpFun(
 // 2D xy direction periodic 
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DXYp
+/*! \fun void cuStenCreate2DXYp
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -497,7 +497,7 @@ void custenDestroy2DXYnpFun(
 	\param numStenBottom Number of points on the bottom of the stencil
 */
 
-void custenCreate2DXYp(
+void cuStenCreate2DXYp(
 	cuSten_t* pt_cuSten,
 	int deviceNum,
 	int numTiles,
@@ -516,24 +516,24 @@ void custenCreate2DXYp(
 	int numStenBottom
 );
 
-/*! \fun __global__ void custenSwap2DYp
+/*! \fun void cuStenSwap2DYp
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DXYp(
+void cuStenSwap2DXYp(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DXYp
+/*! \fun void cuStenDestroy2DXYp
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DXYp(
+void cuStenDestroy2DXYp(
 	cuSten_t* pt_cuSten
 );
 
@@ -541,7 +541,7 @@ void custenDestroy2DXYp(
 // 2D xy direction periodic - user function 
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DXYpFun
+/*! \fun void cuStenCreate2DXYpFun
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -561,7 +561,7 @@ void custenDestroy2DXYp(
 	\param Pointer to user function
 */
 
-void custenCreate2DXYpFun(
+void cuStenCreate2DXYpFun(
 	cuSten_t* pt_cuSten,
 	int deviceNum,
 	int numTiles,
@@ -581,24 +581,24 @@ void custenCreate2DXYpFun(
 	double* func
 );
 
-/*! \fun __global__ void custenSwap2DYpFun
+/*! \fun void cuStenSwap2DYpFun
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DXYpFun(
+void cuStenSwap2DXYpFun(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DXYpFun
+/*! \fun void cuStenDestroy2DXYpFun
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DXYpFun(
+void cuStenDestroy2DXYpFun(
 	cuSten_t* pt_cuSten
 );
 
@@ -607,7 +607,7 @@ void custenDestroy2DXYpFun(
 // 2D y direction non periodic
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DYnp
+/*! \fun void cuStenCreate2DYnp
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -623,7 +623,7 @@ void custenDestroy2DXYpFun(
 	\param numStenBottom Number of points on the bottom of the stencil
 */
 
-void custenCreate2DYnp(
+void cuStenCreate2DYnp(
 	cuSten_t* pt_cuSten,		
 	int deviceNum,				
 	int numTiles,				
@@ -639,24 +639,24 @@ void custenCreate2DYnp(
 	int numStenBottom			
 );
 
-/*! \fun __global__ void custenSwap2DYnp
+/*! \fun void cuStenSwap2DYnp
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DYnp(
+void cuStenSwap2DYnp(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DYnp
+/*! \fun void cuStenDestroy2DYnp
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DYnp(
+void cuStenDestroy2DYnp(
 	cuSten_t* pt_cuSten
 );
 
@@ -664,7 +664,7 @@ void custenDestroy2DYnp(
 // 2D y direction non periodic - user function
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DYnpFun
+/*! \fun void cuStenCreate2DYnpFun
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -681,7 +681,7 @@ void custenDestroy2DYnp(
 	\param Pointer to user function
 */
 
-void custenCreate2DYnpFun(
+void cuStenCreate2DYnpFun(
 	cuSten_t* pt_cuSten,		
 	int deviceNum,				
 	int numTiles,				
@@ -698,24 +698,24 @@ void custenCreate2DYnpFun(
 	double* func 			
 );
 
-/*! \fun __global__ void custenSwap2DYnpFun
+/*! \fun void cuStenSwap2DYnpFun
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DYnpFun(
+void cuStenSwap2DYnpFun(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DYnpFun
+/*! \fun void cuStenDestroy2DYnpFun
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DYnpFun(
+void cuStenDestroy2DYnpFun(
 	cuSten_t* pt_cuSten
 );
 
@@ -723,7 +723,7 @@ void custenDestroy2DYnpFun(
 // 2D y direction periodic
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DYp
+/*! \fun void cuStenCreate2DYp
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -739,7 +739,7 @@ void custenDestroy2DYnpFun(
 	\param numStenBottom Number of points on the bottom of the stencil
 */
 
-void custenCreate2DYp(
+void cuStenCreate2DYp(
 	cuSten_t* pt_cuSten,
 	int deviceNum,
 	int numTiles,
@@ -755,24 +755,24 @@ void custenCreate2DYp(
 	int numStenBottom
 );
 
-/*! \fun __global__ void custenSwap2DYp
+/*! \fun void cuStenSwap2DYp
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DYp(
+void cuStenSwap2DYp(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DYp
+/*! \fun void cuStenDestroy2DYp
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DYp(
+void cuStenDestroy2DYp(
 	cuSten_t* pt_cuSten
 );
 
@@ -780,7 +780,7 @@ void custenDestroy2DYp(
 // 2D y direction periodic - user function
 // ----------------------------------------
 
-/*! \fun __global__ void custenCreate2DYnpFun
+/*! \fun void cuStenCreate2DYnpFun
     \brief Function to set up cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param numTiles Number of tiles to divide the data into
@@ -798,7 +798,7 @@ void custenDestroy2DYp(
 	\param Pointer to user function
 */
 
-void custenCreate2DYpFun(
+void cuStenCreate2DYpFun(
 	cuSten_t* pt_cuSten,
 	int deviceNum,
 	int numTiles,
@@ -816,24 +816,24 @@ void custenCreate2DYpFun(
 	double* func	
 );
 
-/*! \fun __global__ void custenSwap2DYpFun
+/*! \fun void cuStenSwap2DYpFun
     \brief Function to swap pointers necessary for timestepping
     \param pt_cuSten Pointer to cuSten type provided by user
 	\param dataInput Pointer to data input to the on the next compute
 */
 
-void custenSwap2DYpFun(
+void cuStenSwap2DYpFun(
 	cuSten_t* pt_cuSten,
 
 	double* dataInput
 );
 
-/*! \fun __global__ void custenDestroy2DYnpFun
+/*! \fun void cuStenDestroy2DYnpFun
     \brief Function to destroy data associated with cuSten_t
     \param pt_cuSten Pointer to cuSten type provided by user
 */
 
-void custenDestroy2DYpFun(
+void cuStenDestroy2DYpFun(
 	cuSten_t* pt_cuSten
 );
 

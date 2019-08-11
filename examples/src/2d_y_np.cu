@@ -119,7 +119,7 @@ int main()
 	cuSten_t yDirCompute;
 
 	// Initialise the instance of the stencil
-	custenCreate2DYnp(&yDirCompute, deviceNum, numTiles, nx, ny, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenTop, numStenBottom);
+	cuStenCreate2DYnp(&yDirCompute, deviceNum, numTiles, nx, ny, BLOCK_X, BLOCK_Y, dataNew, dataOld, weights, numSten, numStenTop, numStenBottom);
 
 	// Synchronise to ensure everything initialised
 	cudaDeviceSynchronize();
@@ -129,7 +129,7 @@ int main()
 	// -----------------------------
 
 	// Run the computation
-	custenCompute2DYnp(&yDirCompute, 0);
+	cuStenCompute2DYnp(&yDirCompute, HOST);
 
 	// Synchronise at the end to ensure everything is complete
 	cudaDeviceSynchronize();
@@ -147,7 +147,7 @@ int main()
 	// -----------------------------
 
 	// Destroy struct
-	custenDestroy2DYpFun(&yDirCompute);
+	cuStenDestroy2DYpFun(&yDirCompute);
 
 	// Free memory at the end
 	cudaFree(dataOld);

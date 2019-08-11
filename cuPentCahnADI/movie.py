@@ -25,7 +25,7 @@ from matplotlib import animation
 
 output = 'output/'
 
-nx = 1024
+nx = 512
 
 # Get filenames and times
 hdfiles = os.listdir(output)
