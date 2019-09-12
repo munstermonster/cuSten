@@ -3,6 +3,8 @@
 ** Welcome to cuSten **
 cuSten is a CUDA library under development by Andrew Gloster at University College Dublin. The idea behind the library is to simplify the development of code where we wish to apply stencil operations, for example a finite difference stencil, to a block of data in parallel. The user of this library simply has to provide basic details such as the stencil weights and stencil size to the library and then cuSten will handle the rest. Including calling the kernel with the correct block/thread structure, assign local memory and loading the data on/off the device asynchronously.
 
+Main paper describing cuSten: https://arxiv.org/abs/1902.09931
+
 # Getting started
 Examples of how to use the library are found in examples/src. See section below for how to compile.
 
