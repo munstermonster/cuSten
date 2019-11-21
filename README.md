@@ -32,8 +32,9 @@ Run the command make doc in the cuSten directory.
 cuSten is currently used in the following academic papers:
 
 - cuPentBatch -- A batched pentadiagonal solver for NVIDIA GPUs (preprint: https://arxiv.org/abs/1807.07382, published article: https://www.sciencedirect.com/science/article/pii/S0010465519300979)
-- cuSten -- CUDA Finite Difference and Stencil Library (preprint: https://arxiv.org/abs/1902.09931)
+- cuSten -- CUDA Finite Difference and Stencil Library (preprint: https://arxiv.org/abs/1902.09931, published article: https://www.sciencedirect.com/science/article/pii/S2352711019300561)
 - Efficient Interleaved Batch Matrix Solvers for CUDA (preprint: https://arxiv.org/abs/1909.04539)
+- A large-scale statistical study of the coarsening rate in models of Ostwald-Ripening (preprint: https://arxiv.org/abs/1911.03386)
 
 
 
